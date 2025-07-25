@@ -135,18 +135,22 @@ function confirmarGuardar() {
   cerrarPopup();
   alert("Movimiento guardado");
 
-  // 🔧 Añade esto:
-  if (document.getElementById("subvista-graficos").classList.contains("activa")) {
+  // 🔄 Forzamos actualización de todas las vistas relevantes
+  renderResumenCuentas();
+  renderizarGraficos();
+  cargarHistorial();
+
+  // Si estás en alguna subvista de análisis, recárgala
+  const subvistaActiva = document.querySelector(".subvista.activa")?.id;
+  if (subvistaActiva === "subvista-graficos") {
     renderizarGraficos();
   }
-  if (document.getElementById("subvista-resumen").classList.contains("activa")) {
+  if (subvistaActiva === "subvista-resumen") {
     renderResumenCuentas();
   }
-  if (document.getElementById("subvista-historial").classList.contains("activa")) {
-    cargarHistorial();
-  }
 
-  cambiarVista("inicio");
+  // Puedes opcionalmente regresar al inicio si lo deseas:
+  // cambiarVista("inicio");
 }
 
 
