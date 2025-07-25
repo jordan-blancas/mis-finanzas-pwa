@@ -237,13 +237,6 @@ select, input[type="text"], input[type="number"], textarea {
   cursor: pointer;
 }
 
-#grafico-torta {
-  width: 100% !important;
-  max-width: 500px;
-  height: 300px !important;
-  margin: 1em auto;
-  display: block;
-}
 
 .campos-edicion label {
   display: flex;

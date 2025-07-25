@@ -1,3 +1,5 @@
+console.log("app.js cargado correctamente");
+
 const cuentasIniciales = [
   "BCP - Cuenta de ahorro 0092",
   "BCP - Cuenta Digital Soles 1062",
@@ -16,6 +18,7 @@ const cuentasIniciales = [
 ];
 
 let tipoActual = "";
+let movimientoTipo = ""; // Nueva variable para el tipo de movimiento
 let categoriaActual = "";
 let detalleActual = "";
 let origen = "";
@@ -23,6 +26,8 @@ let destino = "";
 let montoTemp = 0;
 let monedaTemp = "PEN";
 let cuentaComisionSeleccionada = "";
+let chartBarras, chartTorta;
+let indiceEdicion = -1;
 
 // Navegación
 const navigationStack = [];
@@ -34,6 +39,9 @@ function cambiarVista(id) {
     navigationStack.push(id);
   }
   tipoActual = id;
+  if (["ingreso", "egreso", "intercambio"].includes(id)) {
+    movimientoTipo = id;
+  }
 }
 
 function volver() {
@@ -97,10 +105,22 @@ function cargarCuentas(vista, titulo) {
 
 function pasarAPaginaMontoDesdeCuenta() {
   const seleccion = document.getElementById("cuenta-seleccionada").value;
-  if (tipoActual === "ingreso") {
+  console.log("Cuenta seleccionada:", seleccion);
+  if (!seleccion) {
+    alert("Por favor, selecciona una cuenta válida.");
+    return;
+  }
+  if (!movimientoTipo || !["ingreso", "egreso"].includes(movimientoTipo)) {
+    alert("Tipo de movimiento no definido o inválido. Por favor, inicia un nuevo registro.");
+    cambiarVista("inicio");
+    return;
+  }
+  if (movimientoTipo === "ingreso") {
     destino = seleccion;
-  } else {
+    origen = "";
+  } else if (movimientoTipo === "egreso") {
     origen = seleccion;
+    destino = "";
   }
   cambiarVista("monto");
 }
@@ -109,56 +129,125 @@ function pasarAPaginaMontoDesdeCuenta() {
 function guardarMovimiento() {
   montoTemp = parseFloat(document.getElementById("monto").value);
   monedaTemp = document.getElementById("moneda").value;
-  if (!montoTemp || montoTemp <= 0) {
-    alert("Monto inválido");
+  if (!montoTemp || isNaN(montoTemp) || montoTemp <= 0) {
+    alert("Por favor, ingresa un monto válido mayor a 0.");
+    return;
+  }
+  if (!movimientoTipo || !["ingreso", "egreso", "intercambio"].includes(movimientoTipo)) {
+    alert("Tipo de movimiento inválido. Por favor, inicia un nuevo registro.");
+    cambiarVista("inicio");
+    return;
+  }
+  if (movimientoTipo !== "intercambio" && !categoriaActual) {
+    alert("Por favor, selecciona una categoría.");
+    return;
+  }
+  if (movimientoTipo === "ingreso" && !destino) {
+    alert("Por favor, selecciona una cuenta de destino.");
+    return;
+  }
+  if (movimientoTipo === "egreso" && !origen) {
+    alert("Por favor, selecciona una cuenta de origen.");
+    return;
+  }
+  if (movimientoTipo === "intercambio" && (!origen || !destino || origen === destino)) {
+    alert("Por favor, selecciona cuentas de origen y destino válidas.");
     return;
   }
   document.getElementById("popup-confirmacion").classList.remove("oculto");
 }
 
 function confirmarGuardar() {
+  if (!movimientoTipo || !["ingreso", "egreso", "intercambio"].includes(movimientoTipo)) {
+    alert("Tipo de movimiento inválido. Por favor, inicia un nuevo registro.");
+    cerrarPopup();
+    cambiarVista("inicio");
+    return;
+  }
+
+  if (movimientoTipo === "ingreso" && !destino) {
+    alert("Por favor, selecciona una cuenta de destino para el ingreso.");
+    return;
+  }
+
+  if (movimientoTipo === "egreso" && !origen) {
+    alert("Por favor, selecciona una cuenta de origen para el egreso.");
+    return;
+  }
+
+  if (movimientoTipo === "intercambio" && (!origen || !destino || origen === destino)) {
+    alert("Por favor, selecciona cuentas de origen y destino válidas.");
+    return;
+  }
+
   const registro = {
-    tipo: tipoActual,
-    categoria: categoriaActual,
-    detalle: detalleActual,
-    origen,
-    destino,
+    tipo: movimientoTipo,
+    categoria: categoriaActual || "",
+    detalle: detalleActual || "",
+    origen: origen || "",
+    destino: destino || "",
     monto: montoTemp,
     moneda: monedaTemp,
     fecha: new Date().toISOString()
   };
 
+  console.log("Guardando movimiento:", registro);
+
   const datos = JSON.parse(localStorage.getItem("movimientos") || "[]");
   datos.push(registro);
   localStorage.setItem("movimientos", JSON.stringify(datos));
 
-  cerrarPopup();
-
-  // ✅ Limpiar campos después de guardar
+  // Limpiar inputs y variables
   document.getElementById("monto").value = "";
   document.getElementById("detalle-egreso").value = "";
   document.getElementById("detalle-ingreso").value = "";
   document.getElementById("nuevo-ingreso").value = "";
+  movimientoTipo = "";
+  tipoActual = "";
+  categoriaActual = "";
+  detalleActual = "";
+  origen = "";
+  destino = "";
+  montoTemp = 0;
+  monedaTemp = "PEN";
 
-  // 🔁 Actualizar todo siempre
-cargarHistorial();
-renderResumenCuentas();
-renderizarGraficos?.();
+  cerrarPopup();
 
+  // Actualizar vistas solo si la subvista activa lo requiere
+  const subvistaActiva = document.querySelector(".subvista.activa")?.id;
+  try {
+    if (subvistaActiva === "subvista-historial") {
+      cargarHistorial();
+    } else if (subvistaActiva === "subvista-graficos") {
+      renderizarGraficos();
+    } else if (subvistaActiva === "subvista-resumen") {
+      renderResumenCuentas();
+    }
+  } catch (error) {
+    console.error("Error al actualizar vistas:", error);
+  }
 
   alert("✅ Movimiento guardado.");
-  volver(); // opcional: regresar a vista anterior
-}
 
+  cambiarVista("analisis");
+  cambiarSubvista("historial");
+}
 
 function cancelarGuardar() {
   cerrarPopup();
 }
 
 function cerrarPopup() {
-  document.getElementById("popup-confirmacion").classList.add("oculto");
-  document.getElementById("popup-nueva-cuenta")?.classList.add("oculto");
-  document.getElementById("popup-comision")?.classList.add("oculto");
+  const popups = [
+    "popup-confirmacion",
+    "popup-nueva-cuenta",
+    "popup-comision",
+    "popup-editar-movimiento"
+  ];
+  popups.forEach(id => {
+    const popup = document.getElementById(id);
+    if (popup) popup.classList.add("oculto");
+  });
 }
 
 // Inicializar cuentas
@@ -172,21 +261,40 @@ function guardarCuentas(cuentas) {
 
 // Subvistas
 function cambiarSubvista(id) {
-  document.querySelectorAll(".subvista").forEach(s => s.classList.remove("activa"));
-  document.getElementById("subvista-" + id).classList.add("activa");
-  if (id === "historial") cargarHistorial();
-  if (id === "graficos") renderizarGraficos();
-  if (id === "resumen") renderResumenCuentas();
+  try {
+    document.querySelectorAll(".subvista").forEach(s => s.classList.remove("activa"));
+    const subvista = document.getElementById("subvista-" + id);
+    if (!subvista) {
+      console.error(`Subvista subvista-${id} no encontrada`);
+      return;
+    }
+    subvista.classList.add("activa");
+
+    if (id === "historial") {
+      cargarHistorial();
+    } else if (id === "graficos") {
+      renderizarGraficos();
+    } else if (id === "resumen") {
+      renderResumenCuentas();
+    } else if (id === "ia") {
+      const respuestaIA = document.getElementById("respuesta-ia");
+      if (respuestaIA) {
+        respuestaIA.textContent = ""; // Deja el área vacía
+      }
+    }
+  } catch (error) {
+    console.error("Error al cambiar subvista:", error);
+  }
 }
 
-// HISTORIAL
+// Historial
 function cargarHistorial() {
   const fechaBase = document.getElementById("filtro-fecha-base").value;
   const tipoFiltro = document.getElementById("filtro-tipo").value;
   const periodo = document.getElementById("filtro-periodo").value;
   const movimientos = JSON.parse(localStorage.getItem("movimientos") || "[]");
 
-  const filtrados = movimientos.filter(mov => {
+  const filtrados = movimientos.map((m, i) => ({ ...m, index: i })).filter(mov => {
     if (tipoFiltro && mov.tipo !== tipoFiltro) return false;
     if (!fechaBase) return true;
 
@@ -213,67 +321,108 @@ function cargarHistorial() {
 
   filtrados.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(mov => {
     const li = document.createElement("li");
-    let linea = `[${mov.fecha.slice(0,10)}] ${mov.tipo.toUpperCase()} - ${mov.categoria}: ${mov.moneda} ${mov.monto.toFixed(2)}`;
+    let linea = `[${mov.fecha.slice(0, 10)}] ${mov.tipo.toUpperCase()} - ${mov.categoria}: ${mov.moneda} ${mov.monto.toFixed(2)}`;
     if (mov.tipo === "intercambio") {
       linea += ` (${mov.origen} ➝ ${mov.destino})`;
     } else {
       linea += ` (${mov.origen || mov.destino})`;
     }
     if (mov.detalle) linea += `\n📝 ${mov.detalle}`;
+
+    const span = document.createElement("span");
+    span.textContent = " ✏️";
+    span.style.cursor = "pointer";
+    span.style.marginLeft = "6px";
+    span.onclick = () => abrirPopupEditar(mov);
+
     li.textContent = linea;
+    li.appendChild(span);
     ul.appendChild(li);
   });
 }
 
-// RESUMEN DE CUENTAS
+// Resumen de cuentas
 function renderResumenCuentas() {
-  const cuentas = getCuentas();
-  const tbody = document.querySelector("#tabla-cuentas tbody");
-  const movimientos = JSON.parse(localStorage.getItem("movimientos") || "[]");
-  const comisiones = JSON.parse(localStorage.getItem("comisiones") || "[]");
-  tbody.innerHTML = "";
+  try {
+    const cuentas = getCuentas();
+    const tbody = document.querySelector("#tabla-cuentas tbody");
+    const movimientos = JSON.parse(localStorage.getItem("movimientos") || "[]");
+    const comisiones = JSON.parse(localStorage.getItem("comisiones") || "[]");
 
-  let total = 0;
+    if (!tbody) {
+      console.error("Elemento #tabla-cuentas tbody no encontrado");
+      return;
+    }
 
-  cuentas.forEach(nombre => {
-    let saldo = 0;
+    console.log("Movimientos en renderResumenCuentas:", movimientos.map(m => ({ tipo: m.tipo, destino: m.destino, origen: m.origen, monto: m.monto, categoria: m.categoria })));
+
+    const saldos = new Map(cuentas.map(nombre => [nombre, 0]));
     movimientos.forEach(m => {
-      if (m.tipo === "ingreso" && m.destino === nombre) saldo += m.monto;
-      if (m.tipo === "egreso" && m.origen === nombre) saldo -= m.monto;
+      let monto = m.moneda === "USD" ? m.monto * 3.8 : m.monto;
+      if (m.tipo === "ingreso" && m.destino && saldos.has(m.destino)) {
+        saldos.set(m.destino, saldos.get(m.destino) + monto);
+        console.log(`Ingreso sumado: ${monto} a ${m.destino} (Categoría: ${m.categoria})`);
+      }
+      if (m.tipo === "egreso" && m.origen && saldos.has(m.origen)) {
+        saldos.set(m.origen, saldos.get(m.origen) - monto);
+        console.log(`Egreso restado: ${monto} de ${m.origen} (Categoría: ${m.categoria})`);
+      }
       if (m.tipo === "intercambio") {
-        if (m.origen === nombre) saldo -= m.monto;
-        if (m.destino === nombre) saldo += m.monto;
+        if (m.origen && saldos.has(m.origen)) {
+          saldos.set(m.origen, saldos.get(m.origen) - monto);
+          console.log(`Intercambio restado: ${monto} de ${m.origen}`);
+        }
+        if (m.destino && saldos.has(m.destino)) {
+          saldos.set(m.destino, saldos.get(m.destino) + monto);
+          console.log(`Intercambio sumado: ${monto} a ${m.destino}`);
+        }
       }
     });
 
-    total += saldo;
+    tbody.innerHTML = "";
+    let total = 0;
+    const saldosArray = [];
 
-    // 🔍 Aquí buscamos si la cuenta tiene comisión registrada
-    const comision = comisiones.find(c => c.cuenta === nombre);
-    const comTxt = comision
-      ? `💸 S/ ${comision.monto.toFixed(2)} (${comision.frecuencia})`
-      : "—";
+    cuentas.forEach(nombre => {
+      const saldo = saldos.get(nombre);
+      total += saldo;
+      saldosArray.push({ nombre, saldo });
 
-    const color = saldo > 0 ? "green" : saldo < 0 ? "crimson" : "#333";
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td style="min-width: 180px;">${nombre}</td>
-      <td style="min-width: 100px; color: ${color}; font-weight: bold;">S/ ${saldo.toFixed(2)}</td>
-      <td style="min-width: 150px;">${comTxt}</td>
-      <td style="display: flex; gap: 0.5em; align-items: center;">
-        <button title="Editar comisión" onclick="abrirPopupComision('${nombre}')">🧾</button>
-        <button title="Eliminar cuenta" onclick="eliminarCuenta('${nombre}')">🗑️</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
+      const comision = comisiones.find(c => c.cuenta === nombre);
+      const comTxt = comision
+        ? `💸 S/ ${comision.monto.toFixed(2)} (${comision.frecuencia})`
+        : "—";
 
-  const totalDiv = document.getElementById("total-cuentas");
-  totalDiv.textContent = `Total: S/ ${total.toFixed(2)}`;
-  totalDiv.style.color = total > 0 ? "green" : total < 0 ? "crimson" : "#333";
-  totalDiv.style.fontWeight = "bold";
+      const color = saldo > 0 ? "green" : saldo < 0 ? "crimson" : "#333";
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td style="min-width: 180px">${nombre}</td>
+        <td style="min-width: 100px; color: ${color}; font-weight: bold">S/ ${saldo.toFixed(2)}</td>
+        <td style="min-width: 150px">${comTxt}</td>
+        <td style="display: flex; gap: 0.5em; align-items: center">
+          <button title="Editar comisión" onclick="abrirPopupComision('${nombre}')">🧾</button>
+          <button title="Eliminar cuenta" onclick="eliminarCuenta('${nombre}')">🗑️</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    const totalDiv = document.getElementById("total-cuentas");
+    if (totalDiv) {
+      totalDiv.textContent = `Total: S/ ${total.toFixed(2)}`;
+      totalDiv.style.color = total > 0 ? "green" : total < 0 ? "crimson" : "#333";
+      totalDiv.style.fontWeight = "bold";
+    } else {
+      console.error("Elemento #total-cuentas no encontrado");
+    }
+
+    console.log("Cuentas:", cuentas);
+    console.log("Saldos calculados:", saldosArray);
+    console.log("Total:", total);
+  } catch (error) {
+    console.error("Error al renderizar resumen de cuentas:", error);
+  }
 }
-
 
 // Añadir cuenta
 function mostrarFormularioCuenta() {
@@ -328,101 +477,38 @@ function guardarComision() {
 
 // IA
 async function analizarConIA() {
-  const datos = JSON.parse(localStorage.getItem("movimientos") || "[]");
-  const prompt = `
-Soy tu asistente financiero. Aquí tienes tus movimientos:
-${JSON.stringify(datos, null, 2)}
-Analiza tus finanzas. ¿En qué podrías ahorrar más? ¿Qué gastos se repiten? ¿Tienes ingresos suficientes? ¿Qué podrías mejorar o eliminar para invertir más?
-  `;
-
-  document.getElementById("respuesta-ia").textContent = "Analizando, por favor espera...";
-
-  const res = await fetch("/api/openai", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ prompt })
-  });
-
-  const json = await res.json();
-  document.getElementById("respuesta-ia").textContent = json.respuesta || "Error al analizar.";
-}
-
-
-// Init
-function init() {
-  const desde = document.getElementById("cuenta-desde");
-  const hacia = document.getElementById("cuenta-hacia");
-  getCuentas().forEach(c => {
-    const o1 = document.createElement("option");
-    const o2 = document.createElement("option");
-    o1.value = o2.value = c;
-    o1.textContent = o2.textContent = c;
-    desde.appendChild(o1);
-    hacia.appendChild(o2);
-  });
-  navigationStack.push("inicio");
-}
-init();
-
-// ========== EDITAR MOVIMIENTOS ==========
-
-let indiceEdicion = -1;
-
-function cargarHistorial() {
-  const fechaBase = document.getElementById("filtro-fecha-base").value;
-  const tipoFiltro = document.getElementById("filtro-tipo").value;
-  const periodo = document.getElementById("filtro-periodo").value;
-  const movimientos = JSON.parse(localStorage.getItem("movimientos") || "[]");
-
-  const filtrados = movimientos.map((m, i) => ({ ...m, index: i })).filter(mov => {
-    if (tipoFiltro && mov.tipo !== tipoFiltro) return false;
-    if (!fechaBase) return true;
-
-    const fechaMov = new Date(mov.fecha);
-    const fechaFiltro = new Date(fechaBase);
-    if (periodo === "dia") return fechaMov.toDateString() === fechaFiltro.toDateString();
-    if (periodo === "mes") return mov.fecha.slice(0, 7) === fechaBase;
-    if (periodo === "anio") return mov.fecha.slice(0, 4) === fechaBase.slice(0, 4);
-    if (periodo === "trimestre") {
-      const mes = parseInt(mov.fecha.slice(5, 7));
-      const q = Math.floor((mes - 1) / 3);
-      const qFiltro = Math.floor((parseInt(fechaBase.slice(5, 7)) - 1) / 3);
-      return mov.fecha.slice(0, 4) === fechaBase.slice(0, 4) && q === qFiltro;
-    }
-    return true;
-  });
-
-  const ul = document.getElementById("lista-historial");
-  ul.innerHTML = "";
-  if (filtrados.length === 0) {
-    ul.innerHTML = "<li>Sin movimientos en ese período.</li>";
+  const respuestaIA = document.getElementById("respuesta-ia");
+  if (!respuestaIA) {
+    console.error("Elemento respuesta-ia no encontrado");
     return;
   }
 
-  filtrados.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(mov => {
-    const li = document.createElement("li");
-    let linea = `[${mov.fecha.slice(0, 10)}] ${mov.tipo.toUpperCase()} - ${mov.categoria}: ${mov.moneda} ${mov.monto.toFixed(2)}`;
-    if (mov.tipo === "intercambio") {
-      linea += ` (${mov.origen} ➝ ${mov.destino})`;
-    } else {
-      linea += ` (${mov.origen || mov.destino})`;
+  respuestaIA.textContent = "Analizando, por favor espera...";
+
+  const datos = JSON.parse(localStorage.getItem("movimientos") || "[]");
+  const prompt = `Soy tu asistente financiero. Aquí tienes tus movimientos: ${JSON.stringify(datos, null, 2)} Analiza tus finanzas. ¿En qué podrías ahorrar más? ¿Qué gastos se repiten? ¿Tienes ingresos suficientes? ¿Qué podrías mejorar o eliminar para invertir más?`;
+
+  try {
+    const res = await fetch("/api/openai", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt })
+    });
+
+    if (!res.ok) {
+      throw new Error(`Error en la API: ${res.status} - ${res.statusText}`);
     }
-    if (mov.detalle) linea += `\n📝 ${mov.detalle}`;
-
-    const span = document.createElement("span");
-    span.textContent = " ✏️";
-    span.style.cursor = "pointer";
-    span.style.marginLeft = "6px";
-    span.onclick = () => abrirPopupEditar(mov);
-
-    li.textContent = linea;
-    li.appendChild(span);
-    ul.appendChild(li);
-  });
+    const json = await res.json();
+    respuestaIA.textContent = json.respuesta || "No se pudo procesar la respuesta.";
+  } catch (error) {
+    console.error("Error en analizarConIA:", error);
+    respuestaIA.textContent = `Error al analizar: ${error.message}. Si estás en local, despliega a Vercel.`;
+  }
 }
 
+// Editar movimientos
 function abrirPopupEditar(mov) {
   indiceEdicion = mov.index;
   document.getElementById("editar-tipo").value = mov.tipo;
@@ -470,7 +556,7 @@ function guardarEdicionMovimiento() {
   cerrarPopupEditar();
   renderResumenCuentas();
   cargarHistorial();
-  renderizarGraficos?.();
+  renderizarGraficos();
 }
 
 function confirmarEliminarMovimiento() {
@@ -481,85 +567,156 @@ function confirmarEliminarMovimiento() {
   cerrarPopupEditar();
   renderResumenCuentas();
   cargarHistorial();
-  renderizarGraficos?.();
+  renderizarGraficos();
 }
 
 function cerrarPopupEditar() {
   document.getElementById("popup-editar-movimiento").classList.add("oculto");
 }
 
-// ========== CORREGIR BOTÓN CANCELAR POPUP DE COMISIÓN ==========
 function cerrarPopupComision() {
   document.getElementById("popup-comision").classList.add("oculto");
 }
 
-// ========== GRÁFICOS ==========
-
-let chartBarras, chartTorta;
-
 function renderizarGraficos() {
-  const movimientos = JSON.parse(localStorage.getItem("movimientos") || "[]");
-  const ingresos = movimientos.filter(m => m.tipo === "ingreso");
-  const egresos = movimientos.filter(m => m.tipo === "egreso");
+  try {
+    const movimientos = JSON.parse(localStorage.getItem("movimientos") || "[]");
+    const ingresos = movimientos.filter(m => m.tipo === "ingreso");
+    const egresos = movimientos.filter(m => m.tipo === "egreso");
 
-  // ========== Gráfico de barras ==========
-  const resumenMensual = {};
-  movimientos.forEach(m => {
-    const mes = m.fecha?.slice(0, 7); // yyyy-mm
-    if (!mes) return;
-    if (!resumenMensual[mes]) resumenMensual[mes] = { ingreso: 0, egreso: 0 };
-    resumenMensual[mes][m.tipo] += m.monto;
-  });
+    console.log("Movimientos:", movimientos);
+    console.log("Ingresos:", ingresos);
+    console.log("Egresos:", egresos);
 
-  const labels = Object.keys(resumenMensual).sort();
-  const ingresosData = labels.map(m => resumenMensual[m].ingreso);
-  const egresosData = labels.map(m => resumenMensual[m].egreso);
-
-  // Si ya hay un gráfico, lo destruimos antes de crear uno nuevo
-  if (chartBarras) chartBarras.destroy();
-
-  chartBarras = new Chart(document.getElementById("grafico-barras"), {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [
-        { label: "Ingresos", data: ingresosData, backgroundColor: "green" },
-        { label: "Egresos", data: egresosData, backgroundColor: "crimson" }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { position: "bottom" } }
+    const canvasBarras = document.getElementById("grafico-barras");
+    const canvasTorta = document.getElementById("grafico-torta");
+    if (!canvasBarras || !canvasTorta) {
+      console.error("Lienzos de gráficos no encontrados en el DOM");
+      return;
     }
-  });
 
-  // ========== Gráfico de torta ==========
-  const porCategoria = {};
-  egresos.forEach(m => {
-    if (!porCategoria[m.categoria]) porCategoria[m.categoria] = 0;
-    porCategoria[m.categoria] += m.monto;
-  });
+    const resumenMensual = new Map();
+    movimientos.forEach(m => {
+      if (m.tipo === "intercambio") return;
+      const mes = m.fecha?.slice(0, 7);
+      if (!mes) {
+        console.warn("Movimiento sin fecha válida:", m);
+        return;
+      }
+      if (!resumenMensual.has(mes)) resumenMensual.set(mes, { ingreso: 0, egreso: 0 });
+      const monto = m.moneda === "USD" ? m.monto * 3.8 : m.monto;
+      if (m.tipo === "ingreso") resumenMensual.get(mes).ingreso += monto;
+      if (m.tipo === "egreso") resumenMensual.get(mes).egreso += monto;
+    });
 
-  // Si ya hay un gráfico, lo destruimos antes de crear uno nuevo
-  if (chartTorta) chartTorta.destroy();
+    const labels = Array.from(resumenMensual.keys()).sort();
+    const ingresosData = labels.map(m => resumenMensual.get(m).ingreso || 0);
+    const egresosData = labels.map(m => resumenMensual.get(m).egreso || 0);
 
-  chartTorta = new Chart(document.getElementById("grafico-torta"), {
-    type: "pie",
-    data: {
-      labels: Object.keys(porCategoria),
-      datasets: [
-        {
-          data: Object.values(porCategoria),
-          backgroundColor: [
-            "#f94144", "#f3722c", "#f8961e", "#f9844a", "#43aa8b",
-            "#577590", "#90be6d", "#277da1", "#ffb703", "#fb8500"
-          ]
+    console.log("Resumen mensual:", Object.fromEntries(resumenMensual));
+    console.log("Labels:", labels);
+    console.log("Ingresos data:", ingresosData);
+    console.log("Egresos data:", egresosData);
+
+    if (chartBarras) chartBarras.destroy();
+    chartBarras = new Chart(canvasBarras, {
+      type: "bar",
+      data: {
+        labels: labels.length ? labels : ["Sin datos"],
+        datasets: [
+          {
+            label: "Ingresos",
+            data: labels.length ? ingresosData : [0],
+            backgroundColor: "green"
+          },
+          {
+            label: "Egresos",
+            data: labels.length ? egresosData : [0],
+            backgroundColor: "crimson"
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: "bottom" },
+          title: {
+            display: !labels.length,
+            text: "No hay movimientos registrados"
+          }
+        },
+        scales: {
+          y: { beginAtZero: true, title: { display: true, text: "Monto (S/)" } },
+          x: { title: { display: true, text: "Mes" } }
         }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { position: "right" } }
-    }
-  });
+      }
+    });
+
+    const porCategoria = new Map();
+    egresos.forEach(m => {
+      const monto = m.moneda === "USD" ? m.monto * 3.8 : m.monto;
+      porCategoria.set(m.categoria, (porCategoria.get(m.categoria) || 0) + monto);
+    });
+
+    console.log("Por categoría:", Object.fromEntries(porCategoria));
+
+    if (chartTorta) chartTorta.destroy();
+    chartTorta = new Chart(canvasTorta, {
+      type: "pie",
+      data: {
+        labels: porCategoria.size ? Array.from(porCategoria.keys()) : ["Sin datos"],
+        datasets: [
+          {
+            data: porCategoria.size ? Array.from(porCategoria.values()) : [1],
+            backgroundColor: porCategoria.size
+              ? [
+                  "#f94144", "#f3722c", "#f8961e", "#f9844a", "#43aa8b",
+                  "#577590", "#90be6d", "#277da1", "#ffb703", "#fb8500"
+                ]
+              : ["#cccccc"]
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: "right" },
+          title: {
+            display: !porCategoria.size,
+            text: "No hay egresos registrados"
+          }
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Error al renderizar gráficos:", error);
+  }
 }
+
+// Inicialización
+function init() {
+  try {
+    const desde = document.getElementById("cuenta-desde");
+    const hacia = document.getElementById("cuenta-hacia");
+    if (!desde || !hacia) {
+      console.error("Elementos cuenta-desde o cuenta-hacia no encontrados");
+      return;
+    }
+    getCuentas().forEach(c => {
+      const o1 = document.createElement("option");
+      const o2 = document.createElement("option");
+      o1.value = o2.value = c;
+      o1.textContent = o2.textContent = c;
+      desde.appendChild(o1);
+      hacia.appendChild(o2);
+    });
+    navigationStack.push("inicio");
+
+    cargarHistorial();
+    renderResumenCuentas();
+    renderizarGraficos();
+  } catch (error) {
+    console.error("Error al inicializar la aplicación:", error);
+  }
+}
+init();
