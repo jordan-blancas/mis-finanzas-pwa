@@ -134,8 +134,21 @@ function confirmarGuardar() {
 
   cerrarPopup();
   alert("Movimiento guardado");
-  location.reload();
+
+  // 🔧 Añade esto:
+  if (document.getElementById("subvista-graficos").classList.contains("activa")) {
+    renderizarGraficos();
+  }
+  if (document.getElementById("subvista-resumen").classList.contains("activa")) {
+    renderResumenCuentas();
+  }
+  if (document.getElementById("subvista-historial").classList.contains("activa")) {
+    cargarHistorial();
+  }
+
+  cambiarVista("inicio");
 }
+
 
 function cancelarGuardar() {
   cerrarPopup();
