@@ -133,24 +133,21 @@ function confirmarGuardar() {
   localStorage.setItem("movimientos", JSON.stringify(datos));
 
   cerrarPopup();
-  alert("Movimiento guardado");
 
-  // 🔄 Forzamos actualización de todas las vistas relevantes
-  renderResumenCuentas();
-  renderizarGraficos();
-  cargarHistorial();
+  // ✅ Limpiar campos después de guardar
+  document.getElementById("monto").value = "";
+  document.getElementById("detalle-egreso").value = "";
+  document.getElementById("detalle-ingreso").value = "";
+  document.getElementById("nuevo-ingreso").value = "";
 
-  // Si estás en alguna subvista de análisis, recárgala
-  const subvistaActiva = document.querySelector(".subvista.activa")?.id;
-  if (subvistaActiva === "subvista-graficos") {
-    renderizarGraficos();
-  }
-  if (subvistaActiva === "subvista-resumen") {
-    renderResumenCuentas();
-  }
+  // 🔁 Actualizar todo siempre
+cargarHistorial();
+renderResumenCuentas();
+renderizarGraficos?.();
 
-  // Puedes opcionalmente regresar al inicio si lo deseas:
-  // cambiarVista("inicio");
+
+  alert("✅ Movimiento guardado.");
+  volver(); // opcional: regresar a vista anterior
 }
 
 
