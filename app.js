@@ -320,23 +320,21 @@ Soy tu asistente financiero. Aquí tienes tus movimientos:
 ${JSON.stringify(datos, null, 2)}
 Analiza tus finanzas. ¿En qué podrías ahorrar más? ¿Qué gastos se repiten? ¿Tienes ingresos suficientes? ¿Qué podrías mejorar o eliminar para invertir más?
   `;
-  const apiKey = localStorage.getItem("apiKey");
+
   document.getElementById("respuesta-ia").textContent = "Analizando, por favor espera...";
-  const respuesta = await fetch("https://api.openai.com/v1/chat/completions", {
+
+  const res = await fetch("/api/openai", {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`
+      "Content-Type": "application/json"
     },
-    body: JSON.stringify({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.7
-    })
+    body: JSON.stringify({ prompt })
   });
-  const json = await respuesta.json();
-  document.getElementById("respuesta-ia").textContent = json.choices[0].message.content;
+
+  const json = await res.json();
+  document.getElementById("respuesta-ia").textContent = json.respuesta || "Error al analizar.";
 }
+
 
 // Init
 function init() {
