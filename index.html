@@ -40,7 +40,6 @@
         <button onclick="seleccionarEgreso('Libros')">Libros</button>
         <button onclick="seleccionarEgreso('Otros')">Otros</button>
       </div>
-      <textarea id="detalle-egreso" placeholder="Detalle opcional..."></textarea>
       <button onclick="volver()">⬅ Regresar</button>
     </section>
 
@@ -58,7 +57,6 @@
       <input type="text" id="nuevo-ingreso" placeholder="Otra fuente (opcional)" />
       <button onclick="usarIngresoManual()">Usar este ingreso</button>
       <button onclick="marcarComoTípico()">💾 Marcar como típico</button>
-      <textarea id="detalle-ingreso" placeholder="Detalle opcional..."></textarea>
       <button onclick="volver()">⬅ Regresar</button>
     </section>
 
@@ -77,7 +75,15 @@
     <section id="vista-cuenta" class="vista">
       <h2 id="cuenta-titulo">Seleccionar cuenta</h2>
       <select id="cuenta-seleccionada"></select>
-      <button onclick="pasarAPaginaMontoDesdeCuenta()">Continuar</button>
+      <div class="fila-monto">
+        <select id="moneda-cuenta">
+          <option value="PEN">S/</option>
+          <option value="USD">$</option>
+        </select>
+        <input type="number" id="monto-cuenta" placeholder="0.00" />
+      </div>
+      <textarea id="detalle-movimiento" placeholder="Detalle opcional..."></textarea>
+      <button onclick="guardarMovimiento()">Ingresar</button>
       <button onclick="volver()">⬅ Regresar</button>
     </section>
 
@@ -127,6 +133,8 @@
         </select>
       
         <button onclick="mostrarHistorial()">🔍 Filtrar</button>
+        <button onclick="volver()">⬅ Regresar</button>
+        <button onclick="cambiarVista('inicio')">➕ Registrar nuevo</button>
         <ul id="lista-historial"></ul>
       </div>
       

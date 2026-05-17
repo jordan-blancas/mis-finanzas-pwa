@@ -58,13 +58,11 @@ function volver() {
 // Selección de egreso/ingreso/intercambio
 function seleccionarEgreso(cat) {
   categoriaActual = cat;
-  detalleActual = document.getElementById("detalle-egreso").value;
   cargarCuentas("cuenta", "Desde qué cuenta se pagó");
 }
 
 function seleccionarIngreso(fuente) {
   categoriaActual = fuente;
-  detalleActual = document.getElementById("detalle-ingreso").value;
   cargarCuentas("cuenta", "¿Dónde se depositó?");
 }
 
@@ -72,7 +70,6 @@ function usarIngresoManual() {
   const otra = document.getElementById("nuevo-ingreso").value.trim();
   if (!otra) return alert("Ingresa una fuente personalizada.");
   categoriaActual = otra;
-  detalleActual = document.getElementById("detalle-ingreso").value;
   cargarCuentas("cuenta", "¿Dónde se depositó?");
 }
 
@@ -127,8 +124,18 @@ function pasarAPaginaMontoDesdeCuenta() {
 
 // Guardar movimiento
 function guardarMovimiento() {
-  montoTemp = parseFloat(document.getElementById("monto").value);
-  monedaTemp = document.getElementById("moneda").value;
+  if (movimientoTipo === "ingreso" || movimientoTipo === "egreso") {
+    const seleccion = document.getElementById("cuenta-seleccionada").value;
+    if (!seleccion) { alert("Por favor, selecciona una cuenta válida."); return; }
+    if (movimientoTipo === "ingreso") { destino = seleccion; origen = ""; }
+    else { origen = seleccion; destino = ""; }
+    detalleActual = document.getElementById("detalle-movimiento").value;
+    montoTemp = parseFloat(document.getElementById("monto-cuenta").value);
+    monedaTemp = document.getElementById("moneda-cuenta").value;
+  } else {
+    montoTemp = parseFloat(document.getElementById("monto").value);
+    monedaTemp = document.getElementById("moneda").value;
+  }
   if (!montoTemp || isNaN(montoTemp) || montoTemp <= 0) {
     alert("Por favor, ingresa un monto válido mayor a 0.");
     return;
@@ -199,8 +206,8 @@ function confirmarGuardar() {
 
   // Limpiar inputs y variables
   document.getElementById("monto").value = "";
-  document.getElementById("detalle-egreso").value = "";
-  document.getElementById("detalle-ingreso").value = "";
+  document.getElementById("monto-cuenta").value = "";
+  document.getElementById("detalle-movimiento").value = "";
   document.getElementById("nuevo-ingreso").value = "";
   movimientoTipo = "";
   tipoActual = "";
