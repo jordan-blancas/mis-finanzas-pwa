@@ -92,9 +92,15 @@ function cargarCuentas(vista, titulo) {
   document.getElementById("cuenta-titulo").innerText = titulo;
   cuentaSeleccionadaActual = "";
   document.querySelectorAll(".btn-cuenta-rapida").forEach(b => b.classList.remove("selected"));
+  const cuentasRapidas = [
+    "Yape (conectado a 0092)",
+    "BCP - Cuenta de ahorro 0092",
+    "BBVA - Cuenta de ahorro",
+    "Efectivo"
+  ];
   const sel = document.getElementById("cuenta-seleccionada");
   sel.innerHTML = "<option value=''>— Otras cuentas —</option>";
-  getCuentas().forEach(c => {
+  getCuentas().filter(c => !cuentasRapidas.includes(c)).forEach(c => {
     const opt = document.createElement("option");
     opt.value = c;
     opt.textContent = c;

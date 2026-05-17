@@ -63,6 +63,12 @@ button:hover {
   gap: 8px;
 }
 
+.grid-4col {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
 /* Selects y entradas */
 select, input[type="text"], input[type="number"], textarea {
   width: 100%;
