@@ -381,25 +381,28 @@ function renderResumenCuentas() {
 
     console.log("Movimientos en renderResumenCuentas:", movimientos.map(m => ({ tipo: m.tipo, destino: m.destino, origen: m.origen, monto: m.monto, categoria: m.categoria })));
 
+    // Cuentas vinculadas: los movimientos de la clave se acumulan en el valor
+    const cuentasVinculadas = {
+      "Yape (conectado a 0092)": "BCP - Cuenta de ahorro 0092"
+    };
+
     const saldos = new Map(cuentas.map(nombre => [nombre, 0]));
     movimientos.forEach(m => {
       let monto = m.moneda === "USD" ? m.monto * 3.8 : m.monto;
-      if (m.tipo === "ingreso" && m.destino && saldos.has(m.destino)) {
-        saldos.set(m.destino, saldos.get(m.destino) + monto);
-        console.log(`Ingreso sumado: ${monto} a ${m.destino} (Categoría: ${m.categoria})`);
+      const dest = cuentasVinculadas[m.destino] || m.destino;
+      const orig = cuentasVinculadas[m.origen] || m.origen;
+      if (m.tipo === "ingreso" && dest && saldos.has(dest)) {
+        saldos.set(dest, saldos.get(dest) + monto);
       }
-      if (m.tipo === "egreso" && m.origen && saldos.has(m.origen)) {
-        saldos.set(m.origen, saldos.get(m.origen) - monto);
-        console.log(`Egreso restado: ${monto} de ${m.origen} (Categoría: ${m.categoria})`);
+      if (m.tipo === "egreso" && orig && saldos.has(orig)) {
+        saldos.set(orig, saldos.get(orig) - monto);
       }
       if (m.tipo === "intercambio") {
-        if (m.origen && saldos.has(m.origen)) {
-          saldos.set(m.origen, saldos.get(m.origen) - monto);
-          console.log(`Intercambio restado: ${monto} de ${m.origen}`);
+        if (orig && saldos.has(orig)) {
+          saldos.set(orig, saldos.get(orig) - monto);
         }
-        if (m.destino && saldos.has(m.destino)) {
-          saldos.set(m.destino, saldos.get(m.destino) + monto);
-          console.log(`Intercambio sumado: ${monto} a ${m.destino}`);
+        if (dest && saldos.has(dest)) {
+          saldos.set(dest, saldos.get(dest) + monto);
         }
       }
     });
@@ -409,6 +412,8 @@ function renderResumenCuentas() {
     const saldosArray = [];
 
     cuentas.forEach(nombre => {
+      // Ocultar cuentas vinculadas (su saldo ya está en la cuenta principal)
+      if (cuentasVinculadas[nombre]) return;
       const saldo = saldos.get(nombre);
       total += saldo;
       saldosArray.push({ nombre, saldo });
