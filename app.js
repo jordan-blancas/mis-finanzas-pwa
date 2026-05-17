@@ -1,20 +1,20 @@
 console.log("app.js cargado correctamente");
 
 const cuentasIniciales = [
+  "Yape (conectado a 0092)",
   "BCP - Cuenta de ahorro 0092",
   "BCP - Cuenta Digital Soles 1062",
   "BCP - Cuenta Digital Soles 4017",
   "BCP - Cuenta Digital Dólares 0193",
   "BCP - Cuenta Corriente 2015",
-  "Yape (conectado a 0092)",
   "BCP - Corriente VATIO S.A.C.",
   "BBVA - Cuenta de ahorro",
+  "Efectivo",
   "Interbank - Cuenta de ahorro",
   "Interbank - Tarjeta de crédito VISA",
   "Banco de la Nación - Cuenta de ahorro",
   "Tarjeta OH",
-  "AMEX Gold",
-  "Efectivo"
+  "AMEX Gold"
 ];
 
 let tipoActual = "";
@@ -25,6 +25,7 @@ let origen = "";
 let destino = "";
 let montoTemp = 0;
 let monedaTemp = "PEN";
+let cuentaSeleccionadaActual = "";
 let cuentaComisionSeleccionada = "";
 let chartBarras, chartTorta;
 let indiceEdicion = -1;
@@ -89,8 +90,10 @@ function pasarAPaginaMonto(tipo) {
 
 function cargarCuentas(vista, titulo) {
   document.getElementById("cuenta-titulo").innerText = titulo;
+  cuentaSeleccionadaActual = "";
+  document.querySelectorAll(".btn-cuenta-rapida").forEach(b => b.classList.remove("selected"));
   const sel = document.getElementById("cuenta-seleccionada");
-  sel.innerHTML = "";
+  sel.innerHTML = "<option value=''>— Otras cuentas —</option>";
   getCuentas().forEach(c => {
     const opt = document.createElement("option");
     opt.value = c;
@@ -98,6 +101,13 @@ function cargarCuentas(vista, titulo) {
     sel.appendChild(opt);
   });
   cambiarVista(vista);
+}
+
+function seleccionarCuentaRapida(cuenta, btn) {
+  cuentaSeleccionadaActual = cuenta;
+  document.querySelectorAll(".btn-cuenta-rapida").forEach(b => b.classList.remove("selected"));
+  btn.classList.add("selected");
+  document.getElementById("cuenta-seleccionada").value = "";
 }
 
 function pasarAPaginaMontoDesdeCuenta() {
@@ -125,7 +135,7 @@ function pasarAPaginaMontoDesdeCuenta() {
 // Guardar movimiento
 function guardarMovimiento() {
   if (movimientoTipo === "ingreso" || movimientoTipo === "egreso") {
-    const seleccion = document.getElementById("cuenta-seleccionada").value;
+    const seleccion = cuentaSeleccionadaActual || document.getElementById("cuenta-seleccionada").value;
     if (!seleccion) { alert("Por favor, selecciona una cuenta válida."); return; }
     if (movimientoTipo === "ingreso") { destino = seleccion; origen = ""; }
     else { origen = seleccion; destino = ""; }
@@ -209,6 +219,8 @@ function confirmarGuardar() {
   document.getElementById("monto-cuenta").value = "";
   document.getElementById("detalle-movimiento").value = "";
   document.getElementById("nuevo-ingreso").value = "";
+  cuentaSeleccionadaActual = "";
+  document.querySelectorAll(".btn-cuenta-rapida").forEach(b => b.classList.remove("selected"));
   movimientoTipo = "";
   tipoActual = "";
   categoriaActual = "";

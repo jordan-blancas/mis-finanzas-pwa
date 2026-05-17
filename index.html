@@ -48,7 +48,7 @@
       <h2>📥 Fuente de ingreso</h2>
       <div class="grid">
         <button onclick="seleccionarIngreso('Universidad Continental')">Universidad Continental</button>
-        <button onclick="seleccionarIngreso('UNISJCSA')">UNISJCSA</button>
+        <button onclick="seleccionarIngreso('UNCP')">UNCP</button>
         <button onclick="seleccionarIngreso('Vatio S.A.C.')">Vatio S.A.C.</button>
         <button onclick="seleccionarIngreso('Élite Cultural')">Élite Cultural</button>
         <button onclick="seleccionarIngreso('Virtual Flow Technologies')">Virtual Flow Technologies</button>
@@ -74,7 +74,15 @@
     <!-- Vista selección cuenta (para ingreso y egreso) -->
     <section id="vista-cuenta" class="vista">
       <h2 id="cuenta-titulo">Seleccionar cuenta</h2>
-      <select id="cuenta-seleccionada"></select>
+      <div class="grid">
+        <button class="btn-cuenta-rapida" onclick="seleccionarCuentaRapida('Yape (conectado a 0092)', this)">Yape</button>
+        <button class="btn-cuenta-rapida" onclick="seleccionarCuentaRapida('BCP - Cuenta de ahorro 0092', this)">BCP</button>
+        <button class="btn-cuenta-rapida" onclick="seleccionarCuentaRapida('BBVA - Cuenta de ahorro', this)">BBVA</button>
+        <button class="btn-cuenta-rapida" onclick="seleccionarCuentaRapida('Efectivo', this)">Efectivo</button>
+      </div>
+      <select id="cuenta-seleccionada" onchange="cuentaSeleccionadaActual=''; document.querySelectorAll('.btn-cuenta-rapida').forEach(b=>b.classList.remove('selected'))">
+        <option value="">— Otras cuentas —</option>
+      </select>
       <div class="fila-monto">
         <select id="moneda-cuenta">
           <option value="PEN">S/</option>
