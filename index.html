@@ -147,7 +147,6 @@
       </div>
 
       <div id="subvista-historial" class="subvista activa">
-        <div id="alerta-limite" class="alerta-limite oculto"></div>
         <div id="resumen-periodo"></div>
         <div id="comparativa-periodo"></div>
         <div id="analisis-adicional"></div>
@@ -174,9 +173,10 @@
 
           <button onclick="cargarHistorial()">🔍 Filtrar</button>
           <button onclick="volver()">⬅ Regresar</button>
-          <button onclick="cambiarVista('inicio')">➕ Registrar nuevo</button>
+          <button onclick="cambiarVista('inicio')">&#x2795; Registrar nuevo</button>
         </div>
 
+        <div id="alerta-limite" class="alerta-limite oculto"></div>
         <ul id="lista-historial"></ul>
       </div>
       
