@@ -760,13 +760,15 @@ select, input[type="text"], input[type="number"], textarea {
 #tabla-cuentas td:nth-child(3),
 #tabla-cuentas th:nth-child(3) { width: 20%; font-size: 0.65rem; color: #888; }
 #tabla-cuentas td:nth-child(4),
-#tabla-cuentas th:nth-child(4) { width: 14%; font-size: 0.65rem; }
+#tabla-cuentas th:nth-child(4) { width: 14%; font-size: 0.65rem; white-space: nowrap; }
 
 #tabla-cuentas td button {
-  padding: 1px 3px;
+  padding: 1px 2px;
   font-size: 0.7rem;
   cursor: pointer;
   line-height: 1;
+  background: none;
+  border: none;
 }
 
 

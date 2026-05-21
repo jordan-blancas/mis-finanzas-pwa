@@ -154,7 +154,7 @@
 
         <div class="filtros-historial">
           <label>Ver por:</label>
-          <select id="filtro-periodo" onchange="actualizarInputFecha()">
+          <select id="filtro-periodo" onchange="actualizarInputFecha(); cargarHistorial()">
             <option value="dia" selected>Día</option>
             <option value="mes">Mes</option>
             <option value="trimestre">Trimestre</option>
@@ -162,10 +162,10 @@
           </select>
 
           <label>Fecha:</label>
-          <input type="date" id="filtro-fecha-base" />
+          <input type="date" id="filtro-fecha-base" onchange="cargarHistorial()" />
 
           <label>Tipo:</label>
-          <select id="filtro-tipo">
+          <select id="filtro-tipo" onchange="cargarHistorial()">
             <option value="">Todos</option>
             <option value="ingreso">Ingreso</option>
             <option value="egreso">Egreso</option>
