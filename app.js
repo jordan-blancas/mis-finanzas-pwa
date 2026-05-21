@@ -507,14 +507,15 @@ function cargarHistorial() {
     const info = document.createElement("div");
     info.className = "mov-info";
     info.innerHTML = `
-      <div class="mov-header">
-        <span class="mov-tipo-cat">${mov.tipo.toUpperCase()} · ${mov.categoria}</span>
-        <span class="mov-edit" title="Editar">✏️</span>
-      </div>
+      <div class="mov-tipo-cat">${mov.tipo.toUpperCase()} · ${mov.categoria}</div>
       <div class="mov-sub">${mov.fecha.slice(0, 10)} · ${cuentaStr}</div>
       ${mov.detalle ? `<div class="mov-detalle">📝 ${mov.detalle}</div>` : ""}
     `;
-    info.querySelector(".mov-edit").onclick = () => abrirPopupEditar(mov);
+
+    const editBtn = document.createElement("span");
+    editBtn.className = "mov-edit";
+    editBtn.textContent = "✏️";
+    editBtn.onclick = () => abrirPopupEditar(mov);
 
     const monto = document.createElement("div");
     monto.className = `mov-monto mov-${mov.tipo}`;
@@ -522,6 +523,7 @@ function cargarHistorial() {
 
     li.appendChild(info);
     li.appendChild(monto);
+    li.appendChild(editBtn);
     ul.appendChild(li);
   });
 }
