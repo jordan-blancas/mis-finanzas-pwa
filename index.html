@@ -204,9 +204,28 @@
 
       <!-- Subvista Análisis con IA -->
       <div id="subvista-ia" class="subvista">
-        <p>Haz clic en el botón para analizar tus finanzas con inteligencia artificial:</p>
-        <button onclick="analizarConIA()">🤖 Analizar con ChatGPT</button>
-        <pre id="respuesta-ia" class="ia-output"></pre>
+
+        <p class="ia-section-titulo">📊 Resumen inteligente</p>
+        <div id="ia-insights-grid" class="ia-insights-grid"></div>
+
+        <p class="ia-section-titulo">🤖 Análisis completo con IA</p>
+        <button onclick="analizarConIA()">&#x1F50D; Analizar mis finanzas</button>
+        <div id="respuesta-ia" class="ia-output ia-oculto"></div>
+
+        <p class="ia-section-titulo">💬 Pregúntale a tu asesor</p>
+        <div class="ia-quick-cards">
+          <button class="ia-quick-btn" onclick="preguntaRapidaIA('&iquest;En qu&eacute; mes gast&eacute; m&aacute;s y por qu&eacute;?')">&iquest;En qu&eacute; mes gast&eacute; m&aacute;s?</button>
+          <button class="ia-quick-btn" onclick="preguntaRapidaIA('&iquest;C&oacute;mo va mi ahorro este a&ntilde;o, estoy en buen camino?')">&iquest;C&oacute;mo va mi ahorro?</button>
+          <button class="ia-quick-btn" onclick="preguntaRapidaIA('&iquest;Qu&eacute; categor&iacute;a deber&iacute;a reducir primero para mejorar mi ahorro?')">&iquest;Qu&eacute; recortar primero?</button>
+          <button class="ia-quick-btn" onclick="preguntaRapidaIA('&iquest;A qu&eacute; ritmo llegar&eacute; a mi meta de ahorro con mi comportamiento actual?')">&iquest;Cu&aacute;ndo llego a mi meta?</button>
+          <button class="ia-quick-btn" onclick="preguntaRapidaIA('&iquest;Hay alg&uacute;n patr&oacute;n preocupante en mis gastos que deba atender ya?')">&iquest;Alguna alerta?</button>
+        </div>
+        <div class="ia-chat-input-row">
+          <input id="ia-pregunta-input" type="text" placeholder="Escribe tu pregunta..." onkeydown="if(event.key==='Enter') enviarPreguntaIA()" />
+          <button onclick="enviarPreguntaIA()">&#x27A4;</button>
+        </div>
+        <div id="ia-chat-respuesta" class="ia-output ia-oculto"></div>
+
       </div>
 
       <!-- Subvista Resumen de cuentas -->

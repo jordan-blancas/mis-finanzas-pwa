@@ -752,10 +752,7 @@ function cambiarSubvista(id) {
     } else if (id === "resumen") {
       renderResumenCuentas();
     } else if (id === "ia") {
-      const respuestaIA = document.getElementById("respuesta-ia");
-      if (respuestaIA) {
-        respuestaIA.textContent = ""; // Deja el área vacía
-      }
+      renderInsightsLocales();
     } else if (id === "ahorros") {
       renderHistorialAhorros();
     }
@@ -1368,35 +1365,182 @@ function guardarComision() {
 
 // IA
 async function analizarConIA() {
-  const respuestaIA = document.getElementById("respuesta-ia");
-  if (!respuestaIA) {
-    console.error("Elemento respuesta-ia no encontrado");
-    return;
-  }
-
-  respuestaIA.textContent = "Analizando, por favor espera...";
+  const el = document.getElementById("respuesta-ia");
+  if (!el) return;
+  el.classList.remove("ia-oculto");
+  el.textContent = "⏳ Analizando tus finanzas...";
 
   const datos = JSON.parse(localStorage.getItem("movimientos") || "[]");
-  const prompt = `Soy tu asistente financiero. Aquí tienes tus movimientos: ${JSON.stringify(datos, null, 2)} Analiza tus finanzas. ¿En qué podrías ahorrar más? ¿Qué gastos se repiten? ¿Tienes ingresos suficientes? ¿Qué podrías mejorar o eliminar para invertir más?`;
+  const hoy = hoyPeru();
+  const mesActual = hoy.slice(0, 7);
+  const egresosMes = datos.filter(m => m.tipo === "egreso" && m.fecha?.slice(0, 7) === mesActual);
+  const ingresosMes = datos.filter(m => m.tipo === "ingreso" && m.fecha?.slice(0, 7) === mesActual);
+  const totalE = egresosMes.reduce((s, m) => s + (m.moneda === "USD" ? m.monto * 3.8 : m.monto), 0);
+  const totalI = ingresosMes.reduce((s, m) => s + (m.moneda === "USD" ? m.monto * 3.8 : m.monto), 0);
+  const freq = {};
+  egresosMes.forEach(m => { if (m.categoria) freq[m.categoria] = (freq[m.categoria] || 0) + (m.moneda === "USD" ? m.monto * 3.8 : m.monto); });
+  const porCategoria = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([cat, monto]) => `${cat}: S/ ${monto.toFixed(2)}`).join(", ");
+  const metaAhorro = parseFloat(localStorage.getItem("metaAhorro") || "0");
+  const limiteDiario = parseFloat(localStorage.getItem("limiteDiario") || "0");
+
+  const prompt = `Eres un asesor financiero personal. Responde en español usando bullets (•).
+
+RESUMEN FINANCIERO (${mesActual}):
+• Ingresos del mes: S/ ${totalI.toFixed(2)}
+• Egresos del mes: S/ ${totalE.toFixed(2)}
+• Balance: S/ ${(totalI - totalE).toFixed(2)}
+• Gastos por categoría: ${porCategoria || "sin datos"}
+• Meta de ahorro mensual: ${metaAhorro > 0 ? `S/ ${metaAhorro}` : "no configurada"}
+• Límite diario: ${limiteDiario > 0 ? `S/ ${limiteDiario}` : "no configurado"}
+
+Historial reciente: ${JSON.stringify(datos.slice(-50))}
+
+Dáme:
+1. 📊 3 observaciones clave sobre mis patrones de gasto
+2. 💡 2 sugerencias concretas para aumentar mi ahorro este mes
+3. ⚠️ 1 alerta si ves algún riesgo financiero
+4. 🎯 Proyección: si sigo este ritmo, ¿cómo termina el mes?
+
+Sé directo, usa bullets y habla de "tú".`;
 
   try {
     const res = await fetch("/api/openai", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt })
     });
-
-    if (!res.ok) {
-      throw new Error(`Error en la API: ${res.status} - ${res.statusText}`);
-    }
+    if (!res.ok) throw new Error(`${res.status} - ${res.statusText}`);
     const json = await res.json();
-    respuestaIA.textContent = json.respuesta || "No se pudo procesar la respuesta.";
+    el.textContent = json.respuesta || "No se pudo procesar la respuesta.";
   } catch (error) {
     console.error("Error en analizarConIA:", error);
-    respuestaIA.textContent = `Error al analizar: ${error.message}. Si estás en local, despliega a Vercel.`;
+    el.textContent = `Error al analizar: ${error.message}.`;
   }
+}
+
+function renderInsightsLocales() {
+  const el = document.getElementById("ia-insights-grid");
+  if (!el) return;
+
+  const datos = JSON.parse(localStorage.getItem("movimientos") || "[]");
+  const hoy = hoyPeru();
+  const mesActual = hoy.slice(0, 7);
+  const diaHoy = parseInt(hoy.slice(8, 10));
+  const [y, m] = mesActual.split("-").map(Number);
+  const prev = new Date(y, m - 2, 1);
+  const mesPasado = prev.getFullYear() + "-" + String(prev.getMonth() + 1).padStart(2, "0");
+
+  const egresosMes = datos.filter(m => m.tipo === "egreso" && m.fecha?.slice(0, 7) === mesActual);
+  const egresosMesPas = datos.filter(m => m.tipo === "egreso" && m.fecha?.slice(0, 7) === mesPasado);
+  const ingresosMes = datos.filter(m => m.tipo === "ingreso" && m.fecha?.slice(0, 7) === mesActual);
+  const totalE = egresosMes.reduce((s, m) => s + (m.moneda === "USD" ? m.monto * 3.8 : m.monto), 0);
+  const totalEP = egresosMesPas.reduce((s, m) => s + (m.moneda === "USD" ? m.monto * 3.8 : m.monto), 0);
+  const totalI = ingresosMes.reduce((s, m) => s + (m.moneda === "USD" ? m.monto * 3.8 : m.monto), 0);
+  const promDiario = diaHoy > 0 ? totalE / diaHoy : 0;
+
+  const freq = {};
+  egresosMes.forEach(m => { if (m.categoria) freq[m.categoria] = (freq[m.categoria] || 0) + (m.moneda === "USD" ? m.monto * 3.8 : m.monto); });
+  const catTop = Object.entries(freq).sort((a, b) => b[1] - a[1])[0];
+
+  let tendTxt = "—", tendColor = "#333";
+  if (totalEP > 0) {
+    const delta = (totalE - totalEP) / totalEP * 100;
+    tendTxt = (delta > 0 ? "+" : "") + delta.toFixed(1) + "%";
+    tendColor = delta > 10 ? "#ee6c4d" : delta > 0 ? "#f4a261" : "#52b788";
+  }
+
+  const limiteDiario = parseFloat(localStorage.getItem("limiteDiario") || "0");
+  let diasExceso = 0;
+  if (limiteDiario > 0) {
+    const porDia = {};
+    egresosMes.forEach(m => {
+      const d = m.fecha?.slice(0, 10);
+      if (d) porDia[d] = (porDia[d] || 0) + (m.moneda === "USD" ? m.monto * 3.8 : m.monto);
+    });
+    diasExceso = Object.values(porDia).filter(v => v > limiteDiario).length;
+  }
+
+  const balance = totalI - totalE;
+  const balColor = balance >= 0 ? "#52b788" : "#ee6c4d";
+
+  // Día de semana con más gasto
+  const porDiaSemana = [0, 0, 0, 0, 0, 0, 0];
+  egresosMes.forEach(m => {
+    if (m.fecha) {
+      const d = new Date(m.fecha.slice(0, 10) + "T12:00:00");
+      porDiaSemana[d.getDay()] += (m.moneda === "USD" ? m.monto * 3.8 : m.monto);
+    }
+  });
+  const dias = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+  const maxDia = porDiaSemana.indexOf(Math.max(...porDiaSemana));
+
+  const cards = [
+    { label: "Gasto promedio diario", valor: `S/ ${promDiario.toFixed(2)}`, sub: `${diaHoy} días transcurridos`, color: "#008cba" },
+    { label: "Mayor categoría del mes", valor: catTop ? catTop[0] : "—", sub: catTop ? `S/ ${catTop[1].toFixed(2)}` : "Sin datos", color: "#6d28d9" },
+    { label: "Tendencia vs mes anterior", valor: tendTxt, sub: `Anterior: S/ ${totalEP.toFixed(0)}`, color: tendColor },
+    { label: "Balance del mes", valor: `S/ ${balance.toFixed(2)}`, sub: balance >= 0 ? "✅ Ahorro positivo" : "⚠️ Gasto mayor a ingresos", color: balColor },
+    { label: "Día con más gasto", valor: dias[maxDia], sub: `S/ ${porDiaSemana[maxDia].toFixed(2)} acumulado`, color: "#e76f51" },
+    ...(limiteDiario > 0 ? [{ label: "Días sobre el límite", valor: `${diasExceso} día${diasExceso !== 1 ? "s" : ""}`, sub: `Límite: S/ ${limiteDiario.toFixed(0)}/día`, color: diasExceso > 0 ? "#ee6c4d" : "#52b788" }] : [])
+  ];
+
+  el.innerHTML = cards.map(c => `
+    <div class="ia-insight-card" style="border-left-color:${c.color}">
+      <span class="ia-insight-label">${c.label}</span>
+      <span class="ia-insight-valor" style="color:${c.color}">${c.valor}</span>
+      <span class="ia-insight-sub">${c.sub}</span>
+    </div>
+  `).join("");
+}
+
+function preguntaRapidaIA(pregunta) {
+  const input = document.getElementById("ia-pregunta-input");
+  if (input) input.value = pregunta;
+  enviarPreguntaIA();
+}
+
+async function enviarPreguntaIA() {
+  const inputEl = document.getElementById("ia-pregunta-input");
+  const respEl = document.getElementById("ia-chat-respuesta");
+  if (!inputEl || !respEl) return;
+  const pregunta = inputEl.value.trim();
+  if (!pregunta) return;
+
+  respEl.classList.remove("ia-oculto");
+  respEl.textContent = "⏳ Pensando...";
+
+  const datos = JSON.parse(localStorage.getItem("movimientos") || "[]");
+  const hoy = hoyPeru();
+  const mesActual = hoy.slice(0, 7);
+  const totalE = datos.filter(m => m.tipo === "egreso" && m.fecha?.slice(0, 7) === mesActual).reduce((s, m) => s + (m.moneda === "USD" ? m.monto * 3.8 : m.monto), 0);
+  const totalI = datos.filter(m => m.tipo === "ingreso" && m.fecha?.slice(0, 7) === mesActual).reduce((s, m) => s + (m.moneda === "USD" ? m.monto * 3.8 : m.monto), 0);
+  const metaAhorro = parseFloat(localStorage.getItem("metaAhorro") || "0");
+
+  const prompt = `Eres un asesor financiero personal. Responde en español de forma concisa y práctica.
+
+Contexto del usuario (${mesActual}):
+• Ingresos: S/ ${totalI.toFixed(2)}
+• Egresos: S/ ${totalE.toFixed(2)}
+• Balance: S/ ${(totalI - totalE).toFixed(2)}
+• Meta de ahorro: ${metaAhorro > 0 ? `S/ ${metaAhorro}` : "no configurada"}
+• Historial: ${JSON.stringify(datos.slice(-60))}
+
+Pregunta: "${pregunta}"
+
+Responde directamente, de forma corta y útil. Usa bullets si conviene.`;
+
+  try {
+    const res = await fetch("/api/openai", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt })
+    });
+    if (!res.ok) throw new Error(`${res.status}`);
+    const json = await res.json();
+    respEl.textContent = json.respuesta || "Sin respuesta.";
+  } catch (e) {
+    respEl.textContent = `Error: ${e.message}`;
+  }
+  inputEl.value = "";
 }
 
 // Editar movimientos
