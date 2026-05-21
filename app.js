@@ -1027,7 +1027,8 @@ function cargarHistorial() {
   renderAnalisisAdicional(filtrados, periodo, fechaBase);
 
   if (periodo === "dia" && fechaBase) {
-    verificarLimiteDiario(calcularTotales(filtrados).egresos);
+    const egresosDia = filtrarMovsPeriodo(todosMovimientos, "dia", fechaBase, "egreso");
+    verificarLimiteDiario(calcularTotales(egresosDia).egresos);
   } else {
     const alertEl = document.getElementById("alerta-limite");
     if (alertEl) alertEl.classList.add("oculto");
@@ -1151,10 +1152,10 @@ function renderResumenCuentas() {
         <td>${nombre}</td>
         <td style="color: ${color}; font-weight: bold">S/ ${saldo.toFixed(2)}</td>
         <td>${comTxt}</td>
-        <td style="display: flex; gap: 0.3em; align-items: center">
+        <td><div style="display:flex;gap:4px;align-items:center">
           <button title="Editar comisión" onclick="abrirPopupComision('${nombre}')">🧾</button>
           <button title="Eliminar cuenta" onclick="eliminarCuenta('${nombre}')">🗑️</button>
-        </td>
+        </div></td>
       `;
       tbody.appendChild(tr);
     });
@@ -1177,9 +1178,9 @@ function renderResumenCuentas() {
           <td>${nombre}</td>
           <td style="color: ${color}; font-weight: bold">${deudaTxt}</td>
           <td>—</td>
-          <td style="display: flex; gap: 0.3em; align-items: center">
+          <td><div style="display:flex;gap:4px;align-items:center">
             <button title="Eliminar cuenta" onclick="eliminarCuenta('${nombre}')">&#x1F5D1;&#xFE0F;</button>
-          </td>
+          </div></td>
         `;
         tbody.appendChild(tr);
       });
