@@ -902,11 +902,27 @@ function verificarLimiteDiario(egresos) {
   const limite = parseFloat(localStorage.getItem("limiteDiario") || "0");
   const el = document.getElementById("alerta-limite");
   if (!el) return;
-  if (limite > 0 && egresos > limite) {
-    el.classList.remove("oculto");
-    el.innerHTML = `⚠️ Superaste tu límite diario de S/ ${limite.toFixed(2)}. Gastaste S/ ${egresos.toFixed(2)}.`;
+  el.classList.remove("oculto");
+  if (limite <= 0) {
+    // Sin límite configurado
+    if (egresos > 0) {
+      el.className = "alerta-limite alerta-neutro";
+      el.innerHTML = `📅 Egresos del día: S/ ${egresos.toFixed(2)}`;
+    } else {
+      el.classList.add("oculto");
+    }
+    return;
+  }
+  const pct = Math.round(egresos / limite * 100);
+  if (egresos >= limite) {
+    el.className = "alerta-limite alerta-excedido";
+    el.innerHTML = `⚠️ Superaste el límite (${pct}%). Gastaste S/ ${egresos.toFixed(2)} de S/ ${limite.toFixed(0)}.`;
+  } else if (egresos > 0) {
+    el.className = "alerta-limite alerta-ok";
+    el.innerHTML = `✅ Dentro del límite · S/ ${egresos.toFixed(2)} de S/ ${limite.toFixed(0)} (${pct}%)`;
   } else {
-    el.classList.add("oculto");
+    el.className = "alerta-limite alerta-ok";
+    el.innerHTML = `✅ Sin egresos este día · Límite disponible: S/ ${limite.toFixed(0)}`;
   }
 }
 

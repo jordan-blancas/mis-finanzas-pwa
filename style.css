@@ -910,22 +910,56 @@ select, input[type="text"], input[type="number"], textarea {
 
 /* ── Filtros historial ── */
 .filtros-historial {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 5px;
   background: #f8f9fa;
   border-radius: 8px;
-  padding: 10px;
+  padding: 8px;
   margin-bottom: 10px;
+  overflow-x: auto;
+}
+.filtros-historial select,
+.filtros-historial input[type="date"],
+.filtros-historial input[type="month"] {
+  font-size: 0.75rem;
+  padding: 4px 3px;
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background: #fff;
+}
+.filtros-historial button {
+  font-size: 1rem;
+  padding: 4px 7px;
+  flex-shrink: 0;
+  border-radius: 5px;
 }
 
 /* ── Alerta límite diario ── */
 .alerta-limite {
-  background: #fff3cd;
-  border: 1px solid #ffc107;
   border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 0.82rem;
-  color: #856404;
+  padding: 7px 12px;
+  font-size: 0.8rem;
   margin-bottom: 8px;
   font-weight: 600;
+}
+.alerta-excedido {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  color: #856404;
+}
+.alerta-ok {
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}
+.alerta-neutro {
+  background: #e8f4f8;
+  border: 1px solid #bee5eb;
+  color: #0c5460;
 }
 
 /* ── Análisis adicional ── */

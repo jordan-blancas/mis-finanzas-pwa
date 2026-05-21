@@ -152,27 +152,21 @@
         <div id="analisis-adicional"></div>
 
         <div class="filtros-historial">
-          <label>Ver por:</label>
           <select id="filtro-periodo" onchange="actualizarInputFecha(); cargarHistorial()">
             <option value="dia" selected>Día</option>
             <option value="mes">Mes</option>
             <option value="trimestre">Trimestre</option>
             <option value="anio">Año</option>
           </select>
-
-          <label>Fecha:</label>
           <input type="date" id="filtro-fecha-base" onchange="cargarHistorial()" oninput="cargarHistorial()" />
-
-          <label>Tipo:</label>
           <select id="filtro-tipo" onchange="cargarHistorial()">
             <option value="">Todos</option>
             <option value="ingreso">Ingreso</option>
             <option value="egreso">Egreso</option>
             <option value="intercambio">Intercambio</option>
           </select>
-
-          <button onclick="volver()">&#x2B05; Regresar</button>
-          <button onclick="cambiarVista('inicio')">&#x2795; Registrar nuevo</button>
+          <button onclick="volver()">&#x2B05;</button>
+          <button onclick="cambiarVista('inicio')">&#x2795;</button>
         </div>
 
         <div id="alerta-limite" class="alerta-limite oculto"></div>
