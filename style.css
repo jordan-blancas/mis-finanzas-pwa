@@ -119,16 +119,64 @@ select, input[type="text"], input[type="number"], textarea {
   padding: 0;
 }
 
-#lista-historial li {
+#lista-historial li.mov-card {
   background: white;
   border-radius: 6px;
   padding: 8px 10px;
   margin-bottom: 6px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  white-space: pre-wrap;
   font-size: 0.82rem;
   line-height: 1.5;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
 }
+
+.mov-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.mov-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mov-tipo-cat {
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: #333;
+}
+
+.mov-edit {
+  cursor: pointer;
+  font-size: 0.8rem;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.mov-sub {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.mov-detalle {
+  font-size: 0.75rem;
+  color: #555;
+  margin-top: 2px;
+}
+
+.mov-monto {
+  font-weight: bold;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  align-self: flex-end;
+}
+
+.mov-ingreso  { color: #2e7d32; }
+.mov-egreso   { color: #c62828; }
+.mov-intercambio { color: #0277bd; }
 
 /* Popups */
 .popup {

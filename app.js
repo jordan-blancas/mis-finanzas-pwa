@@ -496,22 +496,32 @@ function cargarHistorial() {
 
   filtrados.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(mov => {
     const li = document.createElement("li");
-    let linea = `[${mov.fecha.slice(0, 10)}] ${mov.tipo.toUpperCase()} - ${mov.categoria}: ${mov.moneda} ${mov.monto.toFixed(2)}`;
-    if (mov.tipo === "intercambio") {
-      linea += ` (${mov.origen} ➝ ${mov.destino})`;
-    } else {
-      linea += ` (${mov.origen || mov.destino})`;
-    }
-    if (mov.detalle) linea += `\n📝 ${mov.detalle}`;
+    li.className = "mov-card";
 
-    const span = document.createElement("span");
-    span.textContent = " ✏️";
-    span.style.cursor = "pointer";
-    span.style.marginLeft = "6px";
-    span.onclick = () => abrirPopupEditar(mov);
+    const cuentaStr = mov.tipo === "intercambio"
+      ? `${mov.origen} ➝ ${mov.destino}`
+      : (mov.origen || mov.destino || "");
 
-    li.textContent = linea;
-    li.appendChild(span);
+    const signo = mov.tipo === "ingreso" ? "+" : mov.tipo === "egreso" ? "-" : "";
+
+    const info = document.createElement("div");
+    info.className = "mov-info";
+    info.innerHTML = `
+      <div class="mov-header">
+        <span class="mov-tipo-cat">${mov.tipo.toUpperCase()} · ${mov.categoria}</span>
+        <span class="mov-edit" title="Editar">✏️</span>
+      </div>
+      <div class="mov-sub">${mov.fecha.slice(0, 10)} · ${cuentaStr}</div>
+      ${mov.detalle ? `<div class="mov-detalle">📝 ${mov.detalle}</div>` : ""}
+    `;
+    info.querySelector(".mov-edit").onclick = () => abrirPopupEditar(mov);
+
+    const monto = document.createElement("div");
+    monto.className = `mov-monto mov-${mov.tipo}`;
+    monto.textContent = `${signo}${mov.moneda} ${mov.monto.toFixed(2)}`;
+
+    li.appendChild(info);
+    li.appendChild(monto);
     ul.appendChild(li);
   });
 }
