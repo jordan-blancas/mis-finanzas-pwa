@@ -347,15 +347,17 @@ function guardarRegistroRapido() {
   const cat    = rrCatActual;
   const monto  = parseFloat(document.getElementById("rr-monto").value);
   const moneda = document.getElementById("rr-moneda").value;
+  const desc   = (document.getElementById("rr-desc")?.value || "").trim();
   if (!cat)               return alert("Selecciona una categoría.");
   if (!rrCuentaActual)    return alert("Selecciona una cuenta.");
   if (!monto || monto <= 0) return alert("Ingresa un monto válido.");
 
   const movs = JSON.parse(localStorage.getItem("movimientos") || "[]");
-  movs.push({ tipo: "egreso", categoria: cat, detalle: "", origen: rrCuentaActual, destino: "", monto, moneda, fecha: fechaPeruISO() });
+  movs.push({ tipo: "egreso", categoria: cat, detalle: desc, origen: rrCuentaActual, destino: "", monto, moneda, fecha: fechaPeruISO() });
   localStorage.setItem("movimientos", JSON.stringify(movs));
 
   document.getElementById("rr-monto").value = "";
+  const rrDescEl = document.getElementById("rr-desc"); if (rrDescEl) rrDescEl.value = "";
   rrCatActual = "";
   rrCuentaActual = "";
   document.querySelectorAll(".btn-rr-cuenta").forEach(b => b.classList.remove("selected"));
