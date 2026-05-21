@@ -137,6 +137,12 @@ select, input[type="text"], input[type="number"], textarea {
   min-width: 0;
 }
 
+.mov-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .mov-tipo-cat {
   font-weight: 600;
   font-size: 0.8rem;
@@ -145,11 +151,9 @@ select, input[type="text"], input[type="number"], textarea {
 
 .mov-edit {
   cursor: pointer;
-  font-size: 0.85rem;
-  opacity: 0.5;
+  font-size: 0.8rem;
+  opacity: 0.6;
   flex-shrink: 0;
-  align-self: center;
-  padding-left: 4px;
 }
 
 .mov-sub {
