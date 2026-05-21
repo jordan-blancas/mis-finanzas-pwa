@@ -929,6 +929,7 @@ function eliminarGastoFijo(i) {
 }
 
 function renderPresupuesto() {
+  const el = document.getElementById("lista-presupuestos");
   if (!el) return;
   const presupuestos = JSON.parse(localStorage.getItem("presupuestos") || "{}");
   const movimientos = JSON.parse(localStorage.getItem("movimientos") || "[]");
