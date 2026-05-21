@@ -130,6 +130,7 @@ select, input[type="text"], input[type="number"], textarea {
   display: flex;
   align-items: flex-end;
   gap: 8px;
+  position: relative;
 }
 
 .mov-info {
@@ -139,8 +140,6 @@ select, input[type="text"], input[type="number"], textarea {
 
 .mov-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 .mov-tipo-cat {
@@ -153,7 +152,9 @@ select, input[type="text"], input[type="number"], textarea {
   cursor: pointer;
   font-size: 0.8rem;
   opacity: 0.6;
-  flex-shrink: 0;
+  position: absolute;
+  top: 7px;
+  right: 10px;
 }
 
 .mov-sub {
