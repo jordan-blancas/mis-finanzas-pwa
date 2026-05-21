@@ -1022,6 +1022,10 @@ function cargarHistorial() {
   const fechaBase = document.getElementById("filtro-fecha-base").value;
   const todosMovimientos = JSON.parse(localStorage.getItem("movimientos") || "[]");
 
+  // Resetear alerta antes de recalcular
+  const alertEl = document.getElementById("alerta-limite");
+  if (alertEl) alertEl.classList.add("oculto");
+
   // Tarjetas de resumen: solo filtro de período (ignoran el tipo seleccionado)
   const filtradosPeriodo = filtrarMovsPeriodo(todosMovimientos, periodo, fechaBase, "");
   renderResumenPeriodo(calcularTotales(filtradosPeriodo));
