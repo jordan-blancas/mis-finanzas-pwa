@@ -916,15 +916,9 @@ select, input[type="text"], input[type="number"], textarea {
 }
 .nav-historial button {
   flex: 1;
-  padding: 6px 10px;
-  font-size: 0.82rem;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  background: #fff;
-  color: #333;
-  cursor: pointer;
+  padding: 10px;
+  margin: 0;
   width: auto;
-  font-weight: normal;
 }
 
 /* ── Filtros historial ── */
