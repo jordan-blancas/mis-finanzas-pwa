@@ -380,30 +380,44 @@ function filtrarMovsPeriodo(movimientos, periodo, fechaBase, tipoFiltro) {
 
 function calcularTotales(movimientos) {
   let ingresos = 0, egresos = 0;
+  let ingresosUSD = 0, egresosUSD = 0;
   movimientos.forEach(m => {
-    const monto = m.moneda === "USD" ? m.monto * 3.8 : m.monto;
-    if (m.tipo === "ingreso") ingresos += monto;
-    if (m.tipo === "egreso") egresos += monto;
+    if (m.moneda === "USD") {
+      if (m.tipo === "ingreso") ingresosUSD += m.monto;
+      if (m.tipo === "egreso") egresosUSD += m.monto;
+    } else {
+      if (m.tipo === "ingreso") ingresos += m.monto;
+      if (m.tipo === "egreso") egresos += m.monto;
+    }
   });
-  return { ingresos, egresos, saldo: ingresos - egresos };
+  return {
+    ingresos, egresos, saldo: ingresos - egresos,
+    ingresosUSD, egresosUSD, saldoUSD: ingresosUSD - egresosUSD
+  };
 }
 
 function renderResumenPeriodo(totales) {
   const colorSaldo = totales.saldo >= 0 ? "#0a9396" : "crimson";
   const iconSaldo = totales.saldo >= 0 ? "🟢" : "🔴";
+  const usd = (val, color) => val !== 0
+    ? `<div class="card-stat-usd" style="color:${color}">$ ${val.toFixed(2)}</div>`
+    : "";
   document.getElementById("resumen-periodo").innerHTML = `
     <div class="cards-resumen">
       <div class="card-stat" style="border-top:3px solid #0a9396">
         <div class="card-stat-label">Ingresos</div>
         <div class="card-stat-monto" style="color:#0a9396">S/ ${totales.ingresos.toFixed(2)}</div>
+        ${usd(totales.ingresosUSD, "#0a9396")}
       </div>
       <div class="card-stat" style="border-top:3px solid crimson">
         <div class="card-stat-label">Egresos</div>
         <div class="card-stat-monto" style="color:crimson">S/ ${totales.egresos.toFixed(2)}</div>
+        ${usd(totales.egresosUSD, "crimson")}
       </div>
       <div class="card-stat" style="border-top:3px solid ${colorSaldo}">
         <div class="card-stat-label">Saldo ${iconSaldo}</div>
         <div class="card-stat-monto" style="color:${colorSaldo}">S/ ${totales.saldo.toFixed(2)}</div>
+        ${usd(totales.saldoUSD, colorSaldo)}
       </div>
     </div>`;
 }

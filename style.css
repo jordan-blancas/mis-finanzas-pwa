@@ -354,6 +354,13 @@ select, input[type="text"], input[type="number"], textarea {
   font-weight: bold;
 }
 
+.card-stat-usd {
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-top: 1px;
+  opacity: 0.8;
+}
+
 /* ── Historial: tarjetas comparativas ── */
 .cards-comparativa {
   display: grid;
