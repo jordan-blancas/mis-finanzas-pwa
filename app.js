@@ -78,6 +78,86 @@ let indiceEdicion = -1;
 // Navegación
 const navigationStack = [];
 
+function renderPanelInicio() {
+  const panel = document.getElementById("panel-inicio");
+  if (!panel) return;
+
+  const movimientos = JSON.parse(localStorage.getItem("movimientos") || "[]");
+  const hoy = hoyPeru();
+  const mesActual = hoy.slice(0, 7);
+  const [anio, mes] = mesActual.split("-").map(Number);
+  const diaHoy = parseInt(hoy.slice(8, 10));
+  const diasEnMes = new Date(anio, mes, 0).getDate();
+
+  // Egresos de hoy
+  const egresosHoy = movimientos
+    .filter(m => m.tipo === "egreso" && m.fecha?.slice(0, 10) === hoy)
+    .reduce((s, m) => s + (m.moneda === "USD" ? m.monto * 3.8 : m.monto), 0);
+
+  // Egresos del mes
+  const egresosMes = movimientos
+    .filter(m => m.tipo === "egreso" && m.fecha?.slice(0, 7) === mesActual)
+    .reduce((s, m) => s + (m.moneda === "USD" ? m.monto * 3.8 : m.monto), 0);
+
+  // Semáforo del día
+  const limiteDiario = parseFloat(localStorage.getItem("limiteDiario")) || 0;
+  let dotColor, estadoTexto, pctDia = 0;
+  if (limiteDiario <= 0) {
+    dotColor = "#94d2bd"; estadoTexto = "Sin límite diario configurado";
+  } else {
+    pctDia = egresosHoy / limiteDiario;
+    if (pctDia >= 1)        { dotColor = "#ee6c4d"; estadoTexto = `⚠️ Límite superado (${Math.round(pctDia*100)}%)`; }
+    else if (pctDia >= 0.75){ dotColor = "#f4a261"; estadoTexto = `Cerca del límite (${Math.round(pctDia*100)}%)`; }
+    else                    { dotColor = "#52b788"; estadoTexto = `Dentro del límite (${Math.round(pctDia*100)}%)`; }
+  }
+
+  // Proyección del mes
+  const promDiario = diaHoy > 0 ? egresosMes / diaHoy : 0;
+  const proyeccion = promDiario * diasEnMes;
+
+  const presupuestos = JSON.parse(localStorage.getItem("presupuestos") || "{}");
+  const totalPresup = Object.values(presupuestos).reduce((s, v) => s + (parseFloat(v) || 0), 0);
+  let pctProy = 0, proyColor = "#52b788";
+  if (totalPresup > 0) {
+    pctProy = Math.min(100, Math.round(proyeccion / totalPresup * 100));
+    proyColor = pctProy >= 100 ? "#ee6c4d" : pctProy >= 80 ? "#f4a261" : "#52b788";
+  }
+
+  const mesNombre = new Date(anio, mes - 1, 1).toLocaleDateString("es-PE", { month: "long" });
+
+  panel.innerHTML = `
+    <div class="semaforo-card">
+      <div class="semaforo-dot" style="background:${dotColor}"></div>
+      <div class="semaforo-info">
+        <span class="semaforo-titulo">Gastos de hoy</span>
+        <span class="semaforo-monto">S/ ${egresosHoy.toFixed(2)}</span>
+        <span class="semaforo-estado">${estadoTexto}</span>
+        ${limiteDiario > 0 ? `
+          <div class="semaforo-barra-bg">
+            <div class="semaforo-barra-fill" style="width:${Math.min(100, pctDia*100).toFixed(1)}%;background:${dotColor}"></div>
+          </div>` : ""}
+      </div>
+    </div>
+    <div class="proyeccion-card">
+      <div class="proy-header">
+        <span class="proy-titulo">📅 Proyección de ${mesNombre}</span>
+        <span class="proy-monto" style="color:${totalPresup > 0 ? proyColor : "#333"}">S/ ${proyeccion.toFixed(0)}</span>
+      </div>
+      <p class="proy-detalle">
+        Llevas <strong>S/ ${egresosMes.toFixed(0)}</strong> en ${diaHoy} día${diaHoy !== 1 ? "s" : ""}
+        &nbsp;·&nbsp; Prom. S/ ${promDiario.toFixed(1)}/día
+      </p>
+      ${totalPresup > 0 ? `
+        <div class="proy-barra-bg">
+          <div class="proy-barra-fill" style="width:${pctProy}%;background:${proyColor}"></div>
+        </div>
+        <p class="proy-presup-texto">Presupuesto total: S/ ${totalPresup.toFixed(0)}&nbsp;·&nbsp;Proyección: ${pctProy}%</p>` :
+        `<p class="proy-presup-texto">Configura presupuestos para ver el progreso</p>`}
+    </div>
+  `;
+  panel.classList.remove("oculto");
+}
+
 function cambiarVista(id) {
   document.querySelectorAll(".vista").forEach(v => v.classList.remove("activa"));
   document.getElementById("vista-" + id).classList.add("activa");
@@ -94,6 +174,9 @@ function cambiarVista(id) {
   if (id === "configuracion") {
     document.getElementById("input-limite-diario").value = localStorage.getItem("limiteDiario") || "";
     renderPresupuesto();
+  }
+  if (id === "inicio") {
+    renderPanelInicio();
   }
 }
 
@@ -1122,6 +1205,7 @@ function init() {
     cargarHistorial();
     renderResumenCuentas();
     renderizarGraficos();
+    renderPanelInicio();
   } catch (error) {
     console.error("Error al inicializar la aplicación:", error);
   }
