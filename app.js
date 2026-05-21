@@ -336,13 +336,15 @@ function guardarCuentas(cuentas) {
 // Subvistas
 function cambiarSubvista(id) {
   try {
-    document.querySelectorAll(".subvista").forEach(s => s.classList.remove("activa"));
-    const subvista = document.getElementById("subvista-" + id);
-    if (!subvista) {
-      console.error(`Subvista subvista-${id} no encontrada`);
+    const target = document.getElementById("subvista-" + id);
+    if (!target) { console.error(`Subvista subvista-${id} no encontrada`); return; }
+    // Toggle: clic en la misma pestaña activa vuelve al historial
+    if (target.classList.contains("activa") && id !== "historial") {
+      cambiarSubvista("historial");
       return;
     }
-    subvista.classList.add("activa");
+    document.querySelectorAll(".subvista").forEach(s => s.classList.remove("activa"));
+    target.classList.add("activa");
 
     if (id === "historial") {
       const periodoEl = document.getElementById("filtro-periodo");
@@ -548,9 +550,9 @@ function renderAnalisisAdicional(movimientos, periodo, fechaBase) {
     }));
     const diff = estaSem.egresos - semPas.egresos;
     const pct = semPas.egresos > 0 ? Math.round(diff / semPas.egresos * 100) : null;
-    const arrow = pct === null ? "—" : pct > 0 ? `▲ ${pct}%` : pct < 0 ? `▼ ${Math.abs(pct)}%` : "=";
+    const arrow = pct === null ? "—" : pct > 0 ? `▲ ${pct}% más gasto` : pct < 0 ? `▼ ${Math.abs(pct)}% menos gasto` : "Sin cambio";
     const color = pct === null ? "#aaa" : pct > 0 ? "crimson" : "#0a9396";
-    items.push(`<div class="extra-item"><span class="extra-label">📈 Tendencia sem.</span><span class="extra-valor" style="color:${color}">${arrow} <small>S/ ${estaSem.egresos.toFixed(0)} vs S/ ${semPas.egresos.toFixed(0)}</small></span></div>`);
+    items.push(`<div class="extra-item extra-item-col"><span class="extra-label">📈 Esta semana vs semana pasada</span><span class="extra-valor" style="color:${color}">${arrow}</span><span class="extra-sub">Lun–hoy: S/ ${estaSem.egresos.toFixed(0)} · Sem. ant.: S/ ${semPas.egresos.toFixed(0)}</span></div>`);
   }
 
   el.innerHTML = items.length > 0 ? `<div class="analisis-extra">${items.join("")}</div>` : "";
@@ -615,10 +617,11 @@ function renderPresupuesto() {
             S/ ${gas.toFixed(0)}${pres > 0 ? ` / S/ ${pres.toFixed(0)}` : ""}
           </span>
         </div>
-        ${pres > 0 ? `<div class="presup-barra-bg"><div class="presup-barra-fill" style="width:${pct}%;background:${color}"></div></div><div class="presup-pct" style="color:${color}">${pct}%</div>` : ""}
+        ${pres > 0 ? `<div class="presup-barra-bg"><div class="presup-barra-fill" style="width:${pct}%;background:${color}"></div></div><div class="presup-pct" style="color:${color}">${pct}% del presupuesto usado</div>` : ""}
         <div class="presup-editar">
-          <input type="number" id="${inputId}" value="${pres || ""}" placeholder="Sin límite" min="0" step="1">
-          <button onclick="guardarPresupuestoCat('${cat}')">✔</button>
+          <label class="presup-input-label">Límite mensual S/</label>
+          <input type="number" id="${inputId}" value="${pres || ""}" placeholder="0 = sin límite" min="0" step="1">
+          <button onclick="guardarPresupuestoCat('${cat}')">Guardar</button>
         </div>
       </div>`;
   });
