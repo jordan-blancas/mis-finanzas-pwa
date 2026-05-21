@@ -752,6 +752,16 @@ select, input[type="text"], input[type="number"], textarea {
   font-size: 0.75rem;
 }
 
+/* col widths: Cuenta 44% | Saldo 22% | Comisión 20% | Acciones 14% */
+#tabla-cuentas td:nth-child(1),
+#tabla-cuentas th:nth-child(1) { width: 44%; }
+#tabla-cuentas td:nth-child(2),
+#tabla-cuentas th:nth-child(2) { width: 22%; }
+#tabla-cuentas td:nth-child(3),
+#tabla-cuentas th:nth-child(3) { width: 20%; font-size: 0.65rem; color: #888; }
+#tabla-cuentas td:nth-child(4),
+#tabla-cuentas th:nth-child(4) { width: 14%; }
+
 #tabla-cuentas td button {
   padding: 2px 5px;
   font-size: 0.85rem;
