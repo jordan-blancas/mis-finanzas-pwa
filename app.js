@@ -17,6 +17,28 @@ function fechaPeruISO() {
     String(d.getSeconds()).padStart(2, "0");
 }
 
+// Migración única: convierte fechas guardadas en UTC (terminan en "Z") a hora Lima
+(function migrarFechasUTCALima() {
+  const movimientos = JSON.parse(localStorage.getItem("movimientos") || "[]");
+  let cambiados = 0;
+  const migrados = movimientos.map(m => {
+    if (!m.fecha || !m.fecha.endsWith("Z")) return m;
+    const d = new Date(new Date(m.fecha).toLocaleString("en-US", { timeZone: "America/Lima" }));
+    const nueva = d.getFullYear() + "-" +
+      String(d.getMonth() + 1).padStart(2, "0") + "-" +
+      String(d.getDate()).padStart(2, "0") + "T" +
+      String(d.getHours()).padStart(2, "0") + ":" +
+      String(d.getMinutes()).padStart(2, "0") + ":" +
+      String(d.getSeconds()).padStart(2, "0");
+    cambiados++;
+    return { ...m, fecha: nueva };
+  });
+  if (cambiados > 0) {
+    localStorage.setItem("movimientos", JSON.stringify(migrados));
+    console.log(`Migración TZ: ${cambiados} movimiento(s) corregido(s) a hora Lima.`);
+  }
+})();
+
 const cuentasIniciales = [
   "Yape (conectado a 0092)",
   "BCP - Cuenta de ahorro 0092",
@@ -315,11 +337,9 @@ function cambiarSubvista(id) {
     if (id === "historial") {
       const periodoEl = document.getElementById("filtro-periodo");
       const fechaEl = document.getElementById("filtro-fecha-base");
-      if (!fechaEl.value) {
-        periodoEl.value = "dia";
-        fechaEl.type = "date";
-        fechaEl.value = hoyPeru();
-      }
+      periodoEl.value = "dia";
+      fechaEl.type = "date";
+      fechaEl.value = hoyPeru();
       cargarHistorial();
     } else if (id === "graficos") {
       renderizarGraficos();
