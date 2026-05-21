@@ -578,23 +578,27 @@ select, input[type="text"], input[type="number"], textarea {
 }
 
 .presup-editar input {
-  width: 64px;
+  flex: 1;
+  min-width: 0;
   font-size: 0.8rem;
   padding: 3px 5px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  min-width: 0;
 }
 
 .presup-editar button {
-  padding: 3px 8px;
-  font-size: 0.85rem;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  padding: 0;
+  font-size: 0.75rem;
+  line-height: 26px;
+  text-align: center;
   background: #0a9396;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  white-space: nowrap;
 }
 
 /* ── Vista Configuración ── */
