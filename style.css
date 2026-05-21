@@ -580,10 +580,13 @@ select, input[type="text"], input[type="number"], textarea {
 .presup-editar input {
   flex: 1;
   min-width: 0;
+  height: 26px;
+  box-sizing: border-box;
   font-size: 0.8rem;
-  padding: 3px 5px;
+  padding: 0 5px;
   border: 1px solid #ddd;
   border-radius: 4px;
+  vertical-align: middle;
 }
 
 .presup-editar button {

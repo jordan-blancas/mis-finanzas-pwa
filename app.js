@@ -587,7 +587,7 @@ function abrirConfiguracion() {
 const CATEGORIAS_EGRESO = [
   "Transporte","Comida","Piqueos","Ropa","Suplementos","Medicina",
   "Estética","Tarjeta BCP","Tarjeta Interbank","Tarjeta Oh","Celular",
-  "Membresías","Entradas","Libros","Otros"
+  "Membresías","Entradas","Libros","Formación","Otros"
 ];
 
 function renderPresupuesto() {
