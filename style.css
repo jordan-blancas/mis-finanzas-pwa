@@ -122,10 +122,12 @@ select, input[type="text"], input[type="number"], textarea {
 #lista-historial li {
   background: white;
   border-radius: 6px;
-  padding: 10px;
-  margin-bottom: 8px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   white-space: pre-wrap;
+  font-size: 0.82rem;
+  line-height: 1.5;
 }
 
 /* Popups */
