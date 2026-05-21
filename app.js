@@ -57,14 +57,12 @@ const cuentasIniciales = [
   "Efectivo",
   "Interbank - Cuenta de ahorro",
   "Banco de la Nación - Cuenta de ahorro",
-  "BCP - Tarjeta de crédito",
   "Interbank - Tarjeta de crédito VISA",
   "Tarjeta OH",
   "AMEX Gold"
 ];
 
 const CUENTAS_CREDITO = [
-  "BCP - Tarjeta de crédito",
   "Interbank - Tarjeta de crédito VISA",
   "Tarjeta OH",
   "AMEX Gold"
