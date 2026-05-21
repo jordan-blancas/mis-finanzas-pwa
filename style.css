@@ -923,8 +923,9 @@ select, input[type="text"], input[type="number"], textarea {
 .filtros-historial select,
 .filtros-historial input[type="date"],
 .filtros-historial input[type="month"] {
-  font-size: 0.8rem;
-  padding: 5px 4px;
+  font-size: 0.82rem;
+  padding: 0 6px;
+  height: 34px;
   flex: 1;
   min-width: 0;
   border: 1px solid #ccc;
@@ -932,6 +933,8 @@ select, input[type="text"], input[type="number"], textarea {
   background: #fff;
   color: #333;
   box-sizing: border-box;
+  margin: 0;
+  vertical-align: middle;
 }
 .filtros-historial button {
   font-size: 0.9rem;
