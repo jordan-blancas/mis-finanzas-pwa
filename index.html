@@ -119,11 +119,14 @@
         <button onclick="cambiarSubvista('graficos')">📊 Gráficos</button>
         <button onclick="cambiarSubvista('ia')">🤖 IA</button>
         <button onclick="cambiarSubvista('resumen')">🏦 Resumen</button>
+        <button onclick="cambiarSubvista('presupuesto')">💰 Presupuesto</button>
       </div>
 
       <div id="subvista-historial" class="subvista activa">
+        <div id="alerta-limite" class="alerta-limite oculto"></div>
         <div id="resumen-periodo"></div>
         <div id="comparativa-periodo"></div>
+        <div id="analisis-adicional"></div>
 
         <div class="filtros-historial">
           <label>Ver por:</label>
@@ -148,6 +151,7 @@
           <button onclick="cargarHistorial()">🔍 Filtrar</button>
           <button onclick="volver()">⬅ Regresar</button>
           <button onclick="cambiarVista('inicio')">➕ Registrar nuevo</button>
+          <button class="btn-config" onclick="abrirConfiguracion()">⚙️</button>
         </div>
 
         <ul id="lista-historial"></ul>
@@ -187,6 +191,13 @@
         <div id="total-cuentas">Total: S/ 0.00</div>
       </div>
 
+      <!-- Subvista Presupuesto por categoría -->
+      <div id="subvista-presupuesto" class="subvista">
+        <h3>💰 Presupuesto Mensual</h3>
+        <p class="presup-desc">Define cuánto quieres gastar por categoría este mes. Se compara con tus gastos reales del mes actual.</p>
+        <div id="lista-presupuestos"></div>
+      </div>
+
       <!-- Botón volver desde vista análisis -->
       <div class="botones">
         <button onclick="volver()">⬅ Regresar</button>
@@ -200,6 +211,20 @@
       <p>¿Confirmas este movimiento?</p>
       <button onclick="confirmarGuardar()">✅ Confirmar</button>
       <button onclick="cancelarGuardar()">❌ Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Popup: Configuración -->
+  <div id="popup-configuracion" class="popup oculto">
+    <div class="popup-contenido">
+      <h3>⚙️ Configuración</h3>
+      <label>Límite diario de gastos (S/):</label>
+      <input type="number" id="input-limite-diario" min="0" step="0.01" placeholder="Sin límite">
+      <p class="presup-desc">Si tus egresos del día superan este monto, verás una alerta en el historial.</p>
+      <div class="popup-acciones">
+        <button onclick="guardarConfiguracion()">💾 Guardar</button>
+        <button onclick="cerrarPopup()">Cancelar</button>
+      </div>
     </div>
   </div>
 

@@ -443,3 +443,136 @@ select, input[type="text"], input[type="number"], textarea {
   padding: 10px;
   margin-bottom: 10px;
 }
+
+/* ── Alerta límite diario ── */
+.alerta-limite {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  color: #856404;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+/* ── Análisis adicional ── */
+.analisis-extra {
+  background: white;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.extra-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 0.82rem;
+}
+
+.extra-item:last-child { border-bottom: none; }
+
+.extra-label { color: #555; }
+
+.extra-valor {
+  font-weight: 600;
+  text-align: right;
+}
+
+.extra-valor small {
+  font-weight: normal;
+  color: #888;
+  margin-left: 4px;
+}
+
+/* ── Botón config ── */
+.btn-config {
+  background: transparent;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px 6px;
+  opacity: 0.7;
+}
+
+/* ── Presupuesto por categoría ── */
+.presup-desc {
+  font-size: 0.8rem;
+  color: #777;
+  margin-bottom: 10px;
+}
+
+.presup-item {
+  background: white;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.presup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.presup-cat {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.presup-gastado {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.presup-barra-bg {
+  background: #eee;
+  border-radius: 4px;
+  height: 6px;
+  margin: 4px 0;
+  overflow: hidden;
+}
+
+.presup-barra-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.presup-pct {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-align: right;
+  margin-bottom: 4px;
+}
+
+.presup-editar {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.presup-editar input {
+  flex: 1;
+  font-size: 0.8rem;
+  padding: 4px 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.presup-editar button {
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  background: #0a9396;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}

@@ -17,6 +17,12 @@ function fechaPeruISO() {
     String(d.getSeconds()).padStart(2, "0");
 }
 
+function stringFecha(d) {
+  return d.getFullYear() + "-" +
+    String(d.getMonth() + 1).padStart(2, "0") + "-" +
+    String(d.getDate()).padStart(2, "0");
+}
+
 // Migración única: convierte fechas guardadas en UTC (terminan en "Z") a hora Lima
 (function migrarFechasUTCALima() {
   const movimientos = JSON.parse(localStorage.getItem("movimientos") || "[]");
@@ -309,7 +315,8 @@ function cerrarPopup() {
     "popup-confirmacion",
     "popup-nueva-cuenta",
     "popup-comision",
-    "popup-editar-movimiento"
+    "popup-editar-movimiento",
+    "popup-configuracion"
   ];
   popups.forEach(id => {
     const popup = document.getElementById(id);
@@ -348,6 +355,8 @@ function cambiarSubvista(id) {
       renderizarGraficos();
     } else if (id === "resumen") {
       renderResumenCuentas();
+    } else if (id === "presupuesto") {
+      renderPresupuesto();
     } else if (id === "ia") {
       const respuestaIA = document.getElementById("respuesta-ia");
       if (respuestaIA) {
@@ -477,6 +486,154 @@ function actualizarInputFecha() {
   }
 }
 
+// ── Análisis adicional ──────────────────────────────────────────
+function renderAnalisisAdicional(movimientos, periodo, fechaBase) {
+  const el = document.getElementById("analisis-adicional");
+  if (!el) return;
+  const todosMovs = JSON.parse(localStorage.getItem("movimientos") || "[]");
+  const totales = calcularTotales(movimientos);
+  const egresos = movimientos.filter(m => m.tipo === "egreso");
+  const items = [];
+
+  // 1. Tasa de ahorro
+  if (totales.ingresos > 0) {
+    const tasa = Math.round((totales.saldo / totales.ingresos) * 100);
+    const color = tasa >= 0 ? "#0a9396" : "crimson";
+    items.push(`<div class="extra-item"><span class="extra-label">💰 Tasa de ahorro</span><span class="extra-valor" style="color:${color}">${tasa}%</span></div>`);
+  }
+
+  // 2. Categoría con más gasto
+  if (egresos.length > 0) {
+    const porCat = {};
+    egresos.forEach(m => {
+      const monto = m.moneda === "USD" ? m.monto * 3.8 : m.monto;
+      porCat[m.categoria] = (porCat[m.categoria] || 0) + monto;
+    });
+    const top = Object.entries(porCat).sort((a, b) => b[1] - a[1])[0];
+    items.push(`<div class="extra-item"><span class="extra-label">📌 Mayor gasto</span><span class="extra-valor">${top[0]} <small>S/ ${top[1].toFixed(0)}</small></span></div>`);
+  }
+
+  // 3. Promedio diario (mes+)
+  if (["mes", "trimestre", "anio"].includes(periodo) && egresos.length > 0) {
+    const dias = new Set(egresos.map(m => m.fecha.slice(0, 10))).size;
+    items.push(`<div class="extra-item"><span class="extra-label">📅 Gasto prom/día</span><span class="extra-valor">S/ ${(totales.egresos / dias).toFixed(2)}</span></div>`);
+  }
+
+  // 4. Días en rojo (mes+)
+  if (["mes", "trimestre", "anio"].includes(periodo) && movimientos.length > 0) {
+    const dias = [...new Set(movimientos.map(m => m.fecha.slice(0, 10)))];
+    const rojos = dias.filter(dia => {
+      const t = calcularTotales(movimientos.filter(m => m.fecha.slice(0, 10) === dia));
+      return t.egresos > t.ingresos;
+    }).length;
+    const color = rojos > 0 ? "crimson" : "#0a9396";
+    items.push(`<div class="extra-item"><span class="extra-label">🔴 Días en rojo</span><span class="extra-valor" style="color:${color}">${rojos} día${rojos !== 1 ? "s" : ""}</span></div>`);
+  }
+
+  // 5. Tendencia semanal
+  if (fechaBase) {
+    const d = new Date(fechaBase + "T12:00:00");
+    const dow = d.getDay();
+    const diffLun = dow === 0 ? -6 : 1 - dow;
+    const lunes = new Date(d); lunes.setDate(d.getDate() + diffLun);
+    const lunesPas = new Date(lunes); lunesPas.setDate(lunes.getDate() - 7);
+    const domPas = new Date(lunesPas); domPas.setDate(lunesPas.getDate() + 6);
+    const estaSem = calcularTotales(todosMovs.filter(m => {
+      const f = m.fecha.slice(0, 10);
+      return f >= stringFecha(lunes) && f <= fechaBase;
+    }));
+    const semPas = calcularTotales(todosMovs.filter(m => {
+      const f = m.fecha.slice(0, 10);
+      return f >= stringFecha(lunesPas) && f <= stringFecha(domPas);
+    }));
+    const diff = estaSem.egresos - semPas.egresos;
+    const pct = semPas.egresos > 0 ? Math.round(diff / semPas.egresos * 100) : null;
+    const arrow = pct === null ? "—" : pct > 0 ? `▲ ${pct}%` : pct < 0 ? `▼ ${Math.abs(pct)}%` : "=";
+    const color = pct === null ? "#aaa" : pct > 0 ? "crimson" : "#0a9396";
+    items.push(`<div class="extra-item"><span class="extra-label">📈 Tendencia sem.</span><span class="extra-valor" style="color:${color}">${arrow} <small>S/ ${estaSem.egresos.toFixed(0)} vs S/ ${semPas.egresos.toFixed(0)}</small></span></div>`);
+  }
+
+  el.innerHTML = items.length > 0 ? `<div class="analisis-extra">${items.join("")}</div>` : "";
+}
+
+function verificarLimiteDiario(egresos) {
+  const limite = parseFloat(localStorage.getItem("limiteDiario") || "0");
+  const el = document.getElementById("alerta-limite");
+  if (!el) return;
+  if (limite > 0 && egresos > limite) {
+    el.classList.remove("oculto");
+    el.innerHTML = `⚠️ Superaste tu límite diario de S/ ${limite.toFixed(2)}. Gastaste S/ ${egresos.toFixed(2)}.`;
+  } else {
+    el.classList.add("oculto");
+  }
+}
+
+function abrirConfiguracion() {
+  document.getElementById("input-limite-diario").value = localStorage.getItem("limiteDiario") || "";
+  document.getElementById("popup-configuracion").classList.remove("oculto");
+}
+
+function guardarConfiguracion() {
+  const val = parseFloat(document.getElementById("input-limite-diario").value) || 0;
+  localStorage.setItem("limiteDiario", val);
+  cerrarPopup();
+  cargarHistorial();
+}
+
+// ── Presupuesto por categoría ───────────────────────────────────
+const CATEGORIAS_EGRESO = [
+  "Transporte","Comida","Piqueos","Ropa","Suplementos","Medicina",
+  "Estética","Tarjeta BCP","Tarjeta Interbank","Tarjeta Oh","Celular",
+  "Membresías","Entradas","Libros","Otros"
+];
+
+function renderPresupuesto() {
+  const el = document.getElementById("lista-presupuestos");
+  if (!el) return;
+  const presupuestos = JSON.parse(localStorage.getItem("presupuestos") || "{}");
+  const movimientos = JSON.parse(localStorage.getItem("movimientos") || "[]");
+  const mesActual = hoyPeru().slice(0, 7);
+  const gastado = {};
+  movimientos.filter(m => m.tipo === "egreso" && m.fecha.slice(0, 7) === mesActual)
+    .forEach(m => {
+      const monto = m.moneda === "USD" ? m.monto * 3.8 : m.monto;
+      gastado[m.categoria] = (gastado[m.categoria] || 0) + monto;
+    });
+
+  let html = "";
+  CATEGORIAS_EGRESO.forEach(cat => {
+    const pres = presupuestos[cat] || 0;
+    const gas = gastado[cat] || 0;
+    const pct = pres > 0 ? Math.min(100, Math.round(gas / pres * 100)) : 0;
+    const color = pct >= 100 ? "crimson" : pct >= 80 ? "#e07b00" : "#0a9396";
+    const inputId = "presup-" + cat.replace(/[\s]/g, "-");
+    html += `
+      <div class="presup-item">
+        <div class="presup-header">
+          <span class="presup-cat">${cat}</span>
+          <span class="presup-gastado" style="color:${pres > 0 && gas > pres ? "crimson" : "#555"}">
+            S/ ${gas.toFixed(0)}${pres > 0 ? ` / S/ ${pres.toFixed(0)}` : ""}
+          </span>
+        </div>
+        ${pres > 0 ? `<div class="presup-barra-bg"><div class="presup-barra-fill" style="width:${pct}%;background:${color}"></div></div><div class="presup-pct" style="color:${color}">${pct}%</div>` : ""}
+        <div class="presup-editar">
+          <input type="number" id="${inputId}" value="${pres || ""}" placeholder="Sin límite" min="0" step="1">
+          <button onclick="guardarPresupuestoCat('${cat}')">✔</button>
+        </div>
+      </div>`;
+  });
+  el.innerHTML = html;
+}
+
+function guardarPresupuestoCat(cat) {
+  const id = "presup-" + cat.replace(/[\s]/g, "-");
+  const val = parseFloat(document.getElementById(id).value) || 0;
+  const presupuestos = JSON.parse(localStorage.getItem("presupuestos") || "{}");
+  if (val > 0) presupuestos[cat] = val; else delete presupuestos[cat];
+  localStorage.setItem("presupuestos", JSON.stringify(presupuestos));
+  renderPresupuesto();
+}
+
 function cargarHistorial() {
   const periodo = document.getElementById("filtro-periodo").value;
   const tipoFiltro = document.getElementById("filtro-tipo").value;
@@ -485,6 +642,14 @@ function cargarHistorial() {
 
   const filtrados = filtrarMovsPeriodo(todosMovimientos, periodo, fechaBase, tipoFiltro);
   renderResumenPeriodo(calcularTotales(filtrados));
+  renderAnalisisAdicional(filtrados, periodo, fechaBase);
+
+  if (periodo === "dia" && fechaBase) {
+    verificarLimiteDiario(calcularTotales(filtrados).egresos);
+  } else {
+    const alertEl = document.getElementById("alerta-limite");
+    if (alertEl) alertEl.classList.add("oculto");
+  }
 
   if (periodo === "dia" && fechaBase) {
     const ref = (dias) => {
