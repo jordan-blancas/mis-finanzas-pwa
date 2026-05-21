@@ -255,6 +255,33 @@ select, input[type="text"], input[type="number"], textarea {
   font-size: 0.95rem;
 }
 
+/* ── Gráficos ── */
+.chart-card {
+  background: white;
+  border-radius: 12px;
+  padding: 14px 16px 10px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.chart-card-header {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.chart-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.chart-subtitle {
+  font-size: 0.72rem;
+  color: #aaa;
+  margin-top: 2px;
+}
+
 /* Animaciones */
 @keyframes fadeIn {
   from {opacity: 0;}

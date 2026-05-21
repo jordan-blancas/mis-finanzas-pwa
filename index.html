@@ -160,8 +160,27 @@
 
       <!-- Subvista Gráficos -->
       <div id="subvista-graficos" class="subvista">
-        <canvas id="grafico-barras" height="200"></canvas>
-        <canvas id="grafico-torta" height="200"></canvas>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <span class="chart-title">📊 Ingresos vs Egresos</span>
+            <span class="chart-subtitle">Últimos 6 meses</span>
+          </div>
+          <canvas id="grafico-barras"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <span class="chart-title">🏷️ Gasto por categoría</span>
+            <span class="chart-subtitle">Mes actual</span>
+          </div>
+          <canvas id="grafico-categorias"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <span class="chart-title">📈 Balance mensual</span>
+            <span class="chart-subtitle">Ahorro neto mes a mes</span>
+          </div>
+          <canvas id="grafico-tendencia"></canvas>
+        </div>
       </div>
 
       <!-- Subvista Análisis con IA -->

@@ -72,7 +72,7 @@ let montoTemp = 0;
 let monedaTemp = "PEN";
 let cuentaSeleccionadaActual = "";
 let cuentaComisionSeleccionada = "";
-let chartBarras, chartTorta;
+let chartBarras, chartCategorias, chartTendencia;
 let indiceEdicion = -1;
 
 // Navegación
@@ -954,115 +954,149 @@ function cerrarPopupComision() {
 function renderizarGraficos() {
   try {
     const movimientos = JSON.parse(localStorage.getItem("movimientos") || "[]");
-    const ingresos = movimientos.filter(m => m.tipo === "ingreso");
-    const egresos = movimientos.filter(m => m.tipo === "egreso");
 
-    console.log("Movimientos:", movimientos);
-    console.log("Ingresos:", ingresos);
-    console.log("Egresos:", egresos);
-
-    const canvasBarras = document.getElementById("grafico-barras");
-    const canvasTorta = document.getElementById("grafico-torta");
-    if (!canvasBarras || !canvasTorta) {
-      console.error("Lienzos de gráficos no encontrados en el DOM");
-      return;
+    // ── Últimos 6 meses ──
+    const hoy = hoyPeru();
+    const [anioHoy, mesHoy] = hoy.split("-").map(Number);
+    const mesesKeys = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(anioHoy, mesHoy - 1 - i, 1);
+      mesesKeys.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`);
     }
+    const labelsFormat = mesesKeys.map(m => {
+      const [y, mo] = m.split("-");
+      return new Date(parseInt(y), parseInt(mo)-1, 1)
+        .toLocaleDateString("es-PE", { month: "short", year: "2-digit" });
+    });
 
-    const resumenMensual = new Map();
+    const resumen = {};
+    mesesKeys.forEach(m => resumen[m] = { ingreso: 0, egreso: 0 });
     movimientos.forEach(m => {
       if (m.tipo === "intercambio") return;
       const mes = m.fecha?.slice(0, 7);
-      if (!mes) {
-        console.warn("Movimiento sin fecha válida:", m);
-        return;
-      }
-      if (!resumenMensual.has(mes)) resumenMensual.set(mes, { ingreso: 0, egreso: 0 });
+      if (!mes || !resumen[mes]) return;
       const monto = m.moneda === "USD" ? m.monto * 3.8 : m.monto;
-      if (m.tipo === "ingreso") resumenMensual.get(mes).ingreso += monto;
-      if (m.tipo === "egreso") resumenMensual.get(mes).egreso += monto;
+      if (m.tipo === "ingreso") resumen[mes].ingreso += monto;
+      if (m.tipo === "egreso")  resumen[mes].egreso  += monto;
     });
 
-    const labels = Array.from(resumenMensual.keys()).sort();
-    const ingresosData = labels.map(m => resumenMensual.get(m).ingreso || 0);
-    const egresosData = labels.map(m => resumenMensual.get(m).egreso || 0);
+    const ingresosData = mesesKeys.map(m => +resumen[m].ingreso.toFixed(2));
+    const egresosData  = mesesKeys.map(m => +resumen[m].egreso.toFixed(2));
+    const saldoData    = mesesKeys.map(m => +(resumen[m].ingreso - resumen[m].egreso).toFixed(2));
 
-    console.log("Resumen mensual:", Object.fromEntries(resumenMensual));
-    console.log("Labels:", labels);
-    console.log("Ingresos data:", ingresosData);
-    console.log("Egresos data:", egresosData);
+    const fmtPEN = v => `S/ ${v.toFixed(2)}`;
 
+    // ── Chart 1: Barras ingresos vs egresos ──
+    const cvBarras = document.getElementById("grafico-barras");
     if (chartBarras) chartBarras.destroy();
-    chartBarras = new Chart(canvasBarras, {
+    chartBarras = new Chart(cvBarras, {
       type: "bar",
       data: {
-        labels: labels.length ? labels : ["Sin datos"],
+        labels: labelsFormat,
         datasets: [
-          {
-            label: "Ingresos",
-            data: labels.length ? ingresosData : [0],
-            backgroundColor: "green"
-          },
-          {
-            label: "Egresos",
-            data: labels.length ? egresosData : [0],
-            backgroundColor: "crimson"
-          }
+          { label: "Ingresos", data: ingresosData, backgroundColor: "#0a9396", borderRadius: 6, borderSkipped: false },
+          { label: "Egresos",  data: egresosData,  backgroundColor: "#ee6c4d", borderRadius: 6, borderSkipped: false }
         ]
       },
       options: {
         responsive: true,
         plugins: {
-          legend: { position: "bottom" },
-          title: {
-            display: !labels.length,
-            text: "No hay movimientos registrados"
-          }
+          legend: { position: "bottom", labels: { boxWidth: 12, padding: 14, font: { size: 11 } } },
+          tooltip: { callbacks: { label: ctx => " " + fmtPEN(ctx.parsed.y) } }
         },
         scales: {
-          y: { beginAtZero: true, title: { display: true, text: "Monto (S/)" } },
-          x: { title: { display: true, text: "Mes" } }
+          y: { beginAtZero: true, grid: { color: "#f4f4f4" }, ticks: { font: { size: 10 }, callback: v => `S/${v}` } },
+          x: { grid: { display: false }, ticks: { font: { size: 10 } } }
         }
       }
     });
 
-    const porCategoria = new Map();
-    egresos.forEach(m => {
-      const monto = m.moneda === "USD" ? m.monto * 3.8 : m.monto;
-      porCategoria.set(m.categoria, (porCategoria.get(m.categoria) || 0) + monto);
+    // ── Chart 2: Barras horizontales por categoría (mes actual) ──
+    const mesActual = hoy.slice(0, 7);
+    const porCat = {};
+    movimientos
+      .filter(m => m.tipo === "egreso" && m.fecha?.slice(0, 7) === mesActual)
+      .forEach(m => {
+        const monto = m.moneda === "USD" ? m.monto * 3.8 : m.monto;
+        porCat[m.categoria] = (porCat[m.categoria] || 0) + monto;
+      });
+    const cats = Object.entries(porCat).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    const catLabels = cats.length ? cats.map(c => c[0]) : ["Sin egresos"];
+    const catData   = cats.length ? cats.map(c => +c[1].toFixed(2)) : [0];
+    const catColors = cats.map((_, i) => {
+      const t = cats.length > 1 ? i / (cats.length - 1) : 0;
+      return `hsl(${185 - t * 40}, ${70 - t * 20}%, ${40 + t * 20}%)`;
     });
 
-    console.log("Por categoría:", Object.fromEntries(porCategoria));
-
-    if (chartTorta) chartTorta.destroy();
-    chartTorta = new Chart(canvasTorta, {
-      type: "pie",
+    const cvCat = document.getElementById("grafico-categorias");
+    if (chartCategorias) chartCategorias.destroy();
+    chartCategorias = new Chart(cvCat, {
+      type: "bar",
       data: {
-        labels: porCategoria.size ? Array.from(porCategoria.keys()) : ["Sin datos"],
-        datasets: [
-          {
-            data: porCategoria.size ? Array.from(porCategoria.values()) : [1],
-            backgroundColor: porCategoria.size
-              ? [
-                  "#f94144", "#f3722c", "#f8961e", "#f9844a", "#43aa8b",
-                  "#577590", "#90be6d", "#277da1", "#ffb703", "#fb8500"
-                ]
-              : ["#cccccc"]
-          }
-        ]
+        labels: catLabels,
+        datasets: [{
+          data: catData,
+          backgroundColor: cats.length ? catColors : ["#ddd"],
+          borderRadius: 5,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => " " + fmtPEN(ctx.parsed.x) } }
+        },
+        scales: {
+          x: { beginAtZero: true, grid: { color: "#f4f4f4" }, ticks: { font: { size: 10 }, callback: v => `S/${v}` } },
+          y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+        }
+      }
+    });
+
+    // ── Chart 3: Línea de balance neto mensual ──
+    const cvTend = document.getElementById("grafico-tendencia");
+    const ctx3 = cvTend.getContext("2d");
+    const grad = ctx3.createLinearGradient(0, 0, 0, 200);
+    grad.addColorStop(0, "rgba(10,147,150,0.25)");
+    grad.addColorStop(1, "rgba(10,147,150,0.01)");
+
+    if (chartTendencia) chartTendencia.destroy();
+    chartTendencia = new Chart(cvTend, {
+      type: "line",
+      data: {
+        labels: labelsFormat,
+        datasets: [{
+          label: "Balance neto",
+          data: saldoData,
+          borderColor: "#0a9396",
+          backgroundColor: grad,
+          borderWidth: 2.5,
+          pointBackgroundColor: saldoData.map(v => v >= 0 ? "#0a9396" : "#ee6c4d"),
+          pointBorderColor: "#fff",
+          pointBorderWidth: 1.5,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          fill: true,
+          tension: 0.4
+        }]
       },
       options: {
         responsive: true,
         plugins: {
-          legend: { position: "right" },
-          title: {
-            display: !porCategoria.size,
-            text: "No hay egresos registrados"
-          }
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => " " + fmtPEN(ctx.parsed.y) } }
+        },
+        scales: {
+          y: { grid: { color: "#f4f4f4" }, ticks: { font: { size: 10 }, callback: v => `S/${v}` } },
+          x: { grid: { display: false }, ticks: { font: { size: 10 } } }
         }
       }
     });
-  } catch (error) {
-    console.error("Error al renderizar gráficos:", error);
+
+  } catch (e) {
+    console.error("Error al renderizar gráficos:", e);
   }
 }
 
