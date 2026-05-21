@@ -423,7 +423,10 @@ select, input[type="text"], input[type="number"], textarea {
 .rr-header:active { background: #f9f9f9; }
 
 #rr-body {
-  padding: 0 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 8px 12px 12px;
   border-top: 1px solid #f0f0f0;
 }
 
@@ -431,7 +434,6 @@ select, input[type="text"], input[type="number"], textarea {
   display: grid;
   grid-template-columns: repeat(4, 1fr) 34px;
   gap: 6px;
-  margin-top: 6px;
 }
 
 .btn-rr-cuenta {
@@ -588,7 +590,6 @@ select, input[type="text"], input[type="number"], textarea {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 6px;
-  margin-bottom: 8px;
 }
 .btn-rr-cat {
   padding: 7px 4px;
