@@ -399,6 +399,186 @@ select, input[type="text"], input[type="number"], textarea {
   margin: 0;
 }
 
+/* ── Registro rápido ── */
+.registro-rapido-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.rr-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 11px 16px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  cursor: pointer;
+  user-select: none;
+}
+
+.rr-header:active { background: #f9f9f9; }
+
+#rr-body {
+  padding: 0 12px 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.rr-cuentas {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 8px;
+  padding-top: 10px;
+}
+
+.btn-rr-cuenta {
+  padding: 6px 0;
+  font-size: 0.78rem;
+  background: #f4f4f4;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #333;
+}
+
+.btn-rr-cuenta.selected {
+  background: #0a9396;
+  color: white;
+  border-color: #0a9396;
+}
+
+.rr-fila {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.rr-fila select:first-child {
+  width: 54px;
+  flex-shrink: 0;
+}
+
+.rr-fila select:nth-child(2) {
+  width: 54px;
+  flex-shrink: 0;
+}
+
+.rr-fila input {
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  padding: 0 8px;
+  font-size: 0.9rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.rr-fila select {
+  height: 32px;
+  font-size: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: white;
+  padding: 0 4px;
+}
+
+.btn-rr-guardar {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0a9396;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+/* ── Historial de ahorros ── */
+.ahorro-tabla {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ahorro-row {
+  background: white;
+  border-radius: 10px;
+  padding: 10px 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+
+.ahorro-mes {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 4px;
+}
+
+.ahorro-numeros {
+  display: flex;
+  gap: 10px;
+  font-size: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.ahorro-neto {
+  margin-left: auto;
+}
+
+.ahorro-barra-bg {
+  height: 4px;
+  background: #f0f0f0;
+  border-radius: 2px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.ahorro-barra-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.ahorro-meta-txt {
+  font-size: 0.7rem;
+  margin-top: 2px;
+  display: block;
+}
+
+/* ── Backup ── */
+.config-backup {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.btn-backup {
+  display: inline-block;
+  padding: 8px 14px;
+  font-size: 0.83rem;
+  background: #f4f4f4;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #333;
+  text-align: center;
+}
+
+.btn-backup:active { background: #e8e8e8; }
+
+.btn-backup-import { background: #e8f4f4; border-color: #0a9396; color: #0a9396; }
+
 /* Animaciones */
 @keyframes fadeIn {
   from {opacity: 0;}

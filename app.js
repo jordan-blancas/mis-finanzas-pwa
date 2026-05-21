@@ -73,6 +73,7 @@ let monedaTemp = "PEN";
 let cuentaSeleccionadaActual = "";
 let cuentaComisionSeleccionada = "";
 let chartBarras, chartCategorias, chartTendencia;
+let rrCuentaActual = "";
 let indiceEdicion = -1;
 
 // Navegación
@@ -155,7 +156,160 @@ function renderPanelInicio() {
         `<p class="proy-presup-texto">Configura presupuestos para ver el progreso</p>`}
     </div>
   `;
+
+  // Tarjeta meta de ahorro
+  const metaAhorro = parseFloat(localStorage.getItem("metaAhorro")) || 0;
+  if (metaAhorro > 0) {
+    const ingMes = movimientos
+      .filter(m => m.tipo === "ingreso" && m.fecha?.slice(0, 7) === mesActual)
+      .reduce((s, m) => s + (m.moneda === "USD" ? m.monto * 3.8 : m.monto), 0);
+    const ahorroActual = ingMes - egresosMes;
+    const pctMeta = Math.min(100, Math.max(0, ahorroActual / metaAhorro * 100));
+    const metaColor = pctMeta >= 100 ? "#52b788" : pctMeta >= 60 ? "#f4a261" : "#ee6c4d";
+    const metaTexto = ahorroActual >= metaAhorro ? "✅ Meta alcanzada" : ahorroActual >= 0 ? `Faltan S/ ${(metaAhorro - ahorroActual).toFixed(0)}` : "⚠️ Balance negativo";
+    panel.innerHTML += `
+    <div class="proyeccion-card">
+      <div class="proy-header">
+        <span class="proy-titulo">🎯 Meta de ahorro</span>
+        <span class="proy-monto" style="color:${metaColor}">S/ ${ahorroActual.toFixed(0)} / ${metaAhorro.toFixed(0)}</span>
+      </div>
+      <p class="proy-detalle">${metaTexto}</p>
+      <div class="proy-barra-bg">
+        <div class="proy-barra-fill" style="width:${pctMeta.toFixed(1)}%;background:${metaColor}"></div>
+      </div>
+      <p class="proy-presup-texto">${pctMeta.toFixed(0)}% completado este mes</p>
+    </div>`;
+  }
+
   panel.classList.remove("oculto");
+}
+
+// ── Meta de ahorro ──
+function guardarMetaAhorro() {
+  const val = parseFloat(document.getElementById("input-meta-ahorro").value) || 0;
+  localStorage.setItem("metaAhorro", val);
+  const btn = document.querySelector("#vista-configuracion .config-section:nth-child(2) button");
+  if (btn) { btn.textContent = "✔ Guardado"; setTimeout(() => btn.textContent = "✔ Guardar", 1500); }
+  renderPanelInicio();
+}
+
+// ── Historial de ahorros ──
+function renderHistorialAhorros() {
+  const el = document.getElementById("lista-ahorros");
+  if (!el) return;
+  const movimientos = JSON.parse(localStorage.getItem("movimientos") || "[]");
+  const metaAhorro = parseFloat(localStorage.getItem("metaAhorro")) || 0;
+
+  const meses = [...new Set(
+    movimientos.filter(m => m.tipo !== "intercambio").map(m => m.fecha?.slice(0, 7)).filter(Boolean)
+  )].sort().reverse();
+
+  if (!meses.length) { el.innerHTML = '<p class="presup-desc">No hay datos aún.</p>'; return; }
+
+  let html = '<div class="ahorro-tabla">';
+  meses.forEach(mes => {
+    const tot = calcularTotales(movimientos.filter(m => m.tipo !== "intercambio" && m.fecha?.slice(0, 7) === mes));
+    const ahorro = tot.ingresos - tot.egresos;
+    const color = ahorro >= 0 ? "#52b788" : "#ee6c4d";
+    const metaIcon = metaAhorro > 0 ? (ahorro >= metaAhorro ? "✅" : ahorro >= 0 ? "⚠️" : "❌") : "";
+    const [y, m] = mes.split("-");
+    const nombre = new Date(+y, +m - 1, 1).toLocaleDateString("es-PE", { month: "long", year: "numeric" });
+    const pct = metaAhorro > 0 ? Math.min(100, Math.max(0, ahorro / metaAhorro * 100)).toFixed(1) : 0;
+    html += `
+      <div class="ahorro-row">
+        <div class="ahorro-mes">${nombre} ${metaIcon}</div>
+        <div class="ahorro-numeros">
+          <span style="color:#0a9396">↑ S/ ${tot.ingresos.toFixed(0)}</span>
+          <span style="color:#ee6c4d">↓ S/ ${tot.egresos.toFixed(0)}</span>
+          <span class="ahorro-neto" style="color:${color};font-weight:700">= S/ ${ahorro.toFixed(0)}</span>
+        </div>
+        ${metaAhorro > 0 ? `<div class="ahorro-barra-bg"><div class="ahorro-barra-fill" style="width:${pct}%;background:${color}"></div></div>
+          <span class="ahorro-meta-txt" style="color:${color}">${pct}% de meta S/ ${metaAhorro.toFixed(0)}</span>` : ""}
+      </div>`;
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// ── Backup ──
+function exportarBackup() {
+  const data = {
+    version: 1,
+    fecha: fechaPeruISO(),
+    movimientos: JSON.parse(localStorage.getItem("movimientos") || "[]"),
+    cuentas: JSON.parse(localStorage.getItem("cuentas") || "null"),
+    comisiones: JSON.parse(localStorage.getItem("comisiones") || "{}"),
+    limiteDiario: localStorage.getItem("limiteDiario"),
+    presupuestos: JSON.parse(localStorage.getItem("presupuestos") || "{}"),
+    metaAhorro: localStorage.getItem("metaAhorro")
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `mis-finanzas-backup-${hoyPeru()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importarBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!Array.isArray(data.movimientos)) throw new Error("Archivo inválido o dañado.");
+      if (!confirm(`¿Restaurar backup con ${data.movimientos.length} movimientos?\nEsto reemplazará todos los datos actuales.`)) return;
+      localStorage.setItem("movimientos", JSON.stringify(data.movimientos));
+      if (data.cuentas)     localStorage.setItem("cuentas", JSON.stringify(data.cuentas));
+      if (data.comisiones)  localStorage.setItem("comisiones", JSON.stringify(data.comisiones));
+      if (data.limiteDiario != null) localStorage.setItem("limiteDiario", data.limiteDiario);
+      if (data.presupuestos) localStorage.setItem("presupuestos", JSON.stringify(data.presupuestos));
+      if (data.metaAhorro != null)   localStorage.setItem("metaAhorro", data.metaAhorro);
+      alert("✅ Backup restaurado correctamente.");
+      location.reload();
+    } catch(err) {
+      alert("❌ Error al leer el archivo: " + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ── Registro rápido ──
+function toggleRegistroRapido() {
+  const body = document.getElementById("rr-body");
+  const icon = document.getElementById("rr-toggle-icon");
+  const hidden = body.classList.toggle("oculto");
+  icon.textContent = hidden ? "▼" : "▲";
+}
+
+function selRRCuenta(cuenta, btn) {
+  rrCuentaActual = cuenta;
+  document.querySelectorAll(".btn-rr-cuenta").forEach(b => b.classList.remove("selected"));
+  btn.classList.add("selected");
+}
+
+function guardarRegistroRapido() {
+  const cat    = document.getElementById("rr-categoria").value;
+  const monto  = parseFloat(document.getElementById("rr-monto").value);
+  const moneda = document.getElementById("rr-moneda").value;
+  if (!cat)               return alert("Selecciona una categoría.");
+  if (!rrCuentaActual)    return alert("Selecciona una cuenta.");
+  if (!monto || monto <= 0) return alert("Ingresa un monto válido.");
+
+  const movs = JSON.parse(localStorage.getItem("movimientos") || "[]");
+  movs.push({ tipo: "egreso", categoria: cat, detalle: "", origen: rrCuentaActual, destino: "", monto, moneda, fecha: fechaPeruISO() });
+  localStorage.setItem("movimientos", JSON.stringify(movs));
+
+  document.getElementById("rr-monto").value = "";
+  document.getElementById("rr-categoria").value = "";
+  rrCuentaActual = "";
+  document.querySelectorAll(".btn-rr-cuenta").forEach(b => b.classList.remove("selected"));
+  renderPanelInicio();
+
+  const btn = document.querySelector(".btn-rr-guardar");
+  if (btn) { btn.textContent = "✔"; btn.style.background = "#52b788"; setTimeout(() => { btn.textContent = "✔"; btn.style.background = ""; }, 1200); }
 }
 
 function cambiarVista(id) {
@@ -173,6 +327,7 @@ function cambiarVista(id) {
   }
   if (id === "configuracion") {
     document.getElementById("input-limite-diario").value = localStorage.getItem("limiteDiario") || "";
+    document.getElementById("input-meta-ahorro").value = localStorage.getItem("metaAhorro") || "";
     renderPresupuesto();
   }
   if (id === "inicio") {
@@ -449,6 +604,8 @@ function cambiarSubvista(id) {
       if (respuestaIA) {
         respuestaIA.textContent = ""; // Deja el área vacía
       }
+    } else if (id === "ahorros") {
+      renderHistorialAhorros();
     }
   } catch (error) {
     console.error("Error al cambiar subvista:", error);
@@ -1201,6 +1358,14 @@ function init() {
       hacia.appendChild(o2);
     });
     navigationStack.push("inicio");
+
+    // Poblar select de registro rápido
+    const rrCat = document.getElementById("rr-categoria");
+    if (rrCat && rrCat.options.length === 1) {
+      CATEGORIAS_EGRESO.forEach(c => {
+        const o = document.createElement("option"); o.value = c; o.textContent = c; rrCat.appendChild(o);
+      });
+    }
 
     cargarHistorial();
     renderResumenCuentas();

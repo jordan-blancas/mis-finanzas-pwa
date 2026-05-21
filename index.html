@@ -15,6 +15,28 @@
     <section id="vista-inicio" class="vista activa">
       <h1>💰 Mis Finanzas</h1>
       <div id="panel-inicio" class="panel-inicio oculto"></div>
+
+      <!-- Registro rápido -->
+      <div class="registro-rapido-card">
+        <div class="rr-header" onclick="toggleRegistroRapido()">
+          <span>⚡ Registro rápido</span>
+          <span id="rr-toggle-icon">▼</span>
+        </div>
+        <div id="rr-body" class="oculto">
+          <div class="rr-cuentas">
+            <button class="btn-rr-cuenta" onclick="selRRCuenta('Yape (conectado a 0092)', this)">Yape</button>
+            <button class="btn-rr-cuenta" onclick="selRRCuenta('BCP - Cuenta de ahorro 0092', this)">BCP</button>
+            <button class="btn-rr-cuenta" onclick="selRRCuenta('BBVA - Cuenta de ahorro', this)">BBVA</button>
+            <button class="btn-rr-cuenta" onclick="selRRCuenta('Efectivo', this)">Efectivo</button>
+          </div>
+          <div class="rr-fila">
+            <select id="rr-categoria"><option value="">— Categoría —</option></select>
+            <select id="rr-moneda"><option value="PEN">S/</option><option value="USD">$</option></select>
+            <input type="number" id="rr-monto" placeholder="0.00" min="0" step="0.01">
+            <button class="btn-rr-guardar" onclick="guardarRegistroRapido()">✔</button>
+          </div>
+        </div>
+      </div>
       <button onclick="cambiarVista('egreso')">Registrar Egreso</button>
       <button onclick="cambiarVista('intercambio')">Registrar Intercambio</button>
       <button onclick="cambiarVista('ingreso')">Registrar Ingreso</button>
@@ -122,6 +144,7 @@
         <button onclick="cambiarSubvista('graficos')">📊 Gráficos</button>
         <button onclick="cambiarSubvista('ia')">🤖 IA</button>
         <button onclick="cambiarSubvista('resumen')">🏦 Resumen</button>
+        <button onclick="cambiarSubvista('ahorros')">💰 Ahorros</button>
       </div>
 
       <div id="subvista-historial" class="subvista activa">
@@ -211,6 +234,12 @@
         <div id="total-cuentas">Total: S/ 0.00</div>
       </div>
 
+      <!-- Subvista Historial de Ahorros -->
+      <div id="subvista-ahorros" class="subvista">
+        <h3>💰 Historial de Ahorros</h3>
+        <div id="lista-ahorros"></div>
+      </div>
+
       <!-- Botón volver desde vista análisis -->
       <div class="botones">
         <button onclick="volver()">⬅ Regresar</button>
@@ -229,6 +258,28 @@
           <span class="config-limite-label">S/</span>
           <input type="number" id="input-limite-diario" min="0" step="0.01" placeholder="Sin límite">
           <button onclick="guardarLimiteDiario()">✔ Guardar</button>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <h3>🎯 Meta de ahorro mensual</h3>
+        <p class="presup-desc">Cuánto quieres ahorrar cada mes. Vers el avance en la pantalla de inicio.</p>
+        <div class="config-limite">
+          <span class="config-limite-label">S/</span>
+          <input type="number" id="input-meta-ahorro" min="0" step="1" placeholder="Sin meta">
+          <button onclick="guardarMetaAhorro()">✔ Guardar</button>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <h3>💾 Backup</h3>
+        <p class="presup-desc">Exporta todos tus datos o restaura desde un archivo previo.</p>
+        <div class="config-backup">
+          <button class="btn-backup" onclick="exportarBackup()">⬇️ Exportar backup</button>
+          <label class="btn-backup btn-backup-import">
+            ⬆️ Restaurar backup
+            <input type="file" accept=".json" onchange="importarBackup(event)" style="display:none">
+          </label>
         </div>
       </div>
 
