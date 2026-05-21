@@ -74,6 +74,7 @@ let cuentaSeleccionadaActual = "";
 let cuentaComisionSeleccionada = "";
 let chartBarras, chartCategorias, chartTendencia;
 let rrCuentaActual = "";
+let rrCatActual = "";
 let indiceEdicion = -1;
 
 // Navegación
@@ -182,9 +183,40 @@ function renderPanelInicio() {
   }
 
   panel.classList.remove("oculto");
+
+  // ── Mini historial de ahorros (últimos 4 meses) ──
+  const mesesAhorro = [...new Set(
+    movimientos.filter(m => m.tipo !== "intercambio").map(m => m.fecha?.slice(0, 7)).filter(Boolean)
+  )].sort().reverse().slice(0, 4);
+
+  if (mesesAhorro.length > 0) {
+    const metaAhorroMini = parseFloat(localStorage.getItem("metaAhorro")) || 0;
+    let aHtml = '<div class="mini-ahorros-card"><span class="mini-ahorros-titulo">💰 Ahorros recientes</span>';
+    mesesAhorro.forEach(m => {
+      const tot = calcularTotales(movimientos.filter(mv => mv.tipo !== "intercambio" && mv.fecha?.slice(0, 7) === m));
+      const ahorro = tot.ingresos - tot.egresos;
+      const color = ahorro >= 0 ? "#52b788" : "#ee6c4d";
+      const icon = metaAhorroMini > 0 ? (ahorro >= metaAhorroMini ? " ✅" : ahorro >= 0 ? " ⚠️" : " ❌") : "";
+      const [y, mo] = m.split("-");
+      const nombre = new Date(+y, +mo - 1, 1).toLocaleDateString("es-PE", { month: "short", year: "2-digit" });
+      const pct = metaAhorroMini > 0 ? Math.min(100, Math.max(0, ahorro / metaAhorroMini * 100)).toFixed(0) : null;
+      aHtml += `<div class="mini-ahorro-row">
+        <div class="mini-ahorro-left">
+          <span class="mini-ahorro-mes">${nombre}${icon}</span>
+          ${pct !== null ? `<span class="mini-ahorro-pct" style="color:${color}">${pct}%</span>` : ""}
+        </div>
+        <div class="mini-ahorro-right">
+          <span style="color:#0a9396;font-size:0.72rem">↑ S/ ${tot.ingresos.toFixed(0)}</span>
+          <span style="color:#ee6c4d;font-size:0.72rem">↓ S/ ${tot.egresos.toFixed(0)}</span>
+          <span class="mini-ahorro-neto" style="color:${color}">= S/ ${ahorro.toFixed(0)}</span>
+        </div>
+      </div>`;
+    });
+    aHtml += '</div>';
+    panel.innerHTML += aHtml;
+  }
 }
 
-// ── Meta de ahorro ──
 function guardarMetaAhorro() {
   const val = parseFloat(document.getElementById("input-meta-ahorro").value) || 0;
   localStorage.setItem("metaAhorro", val);
@@ -290,8 +322,14 @@ function selRRCuenta(cuenta, btn) {
   btn.classList.add("selected");
 }
 
+function selRRCat(cat, btn) {
+  rrCatActual = cat;
+  document.querySelectorAll(".btn-rr-cat").forEach(b => b.classList.remove("selected"));
+  btn.classList.add("selected");
+}
+
 function guardarRegistroRapido() {
-  const cat    = document.getElementById("rr-categoria").value;
+  const cat    = rrCatActual;
   const monto  = parseFloat(document.getElementById("rr-monto").value);
   const moneda = document.getElementById("rr-moneda").value;
   if (!cat)               return alert("Selecciona una categoría.");
@@ -303,13 +341,13 @@ function guardarRegistroRapido() {
   localStorage.setItem("movimientos", JSON.stringify(movs));
 
   document.getElementById("rr-monto").value = "";
-  document.getElementById("rr-categoria").value = "";
+  rrCatActual = "";
   rrCuentaActual = "";
   document.querySelectorAll(".btn-rr-cuenta").forEach(b => b.classList.remove("selected"));
-  renderPanelInicio();
+  renderPanelInicio(); // recalcula top3 y refresca panel
 
   const btn = document.querySelector(".btn-rr-guardar");
-  if (btn) { btn.textContent = "✔"; btn.style.background = "#52b788"; setTimeout(() => { btn.textContent = "✔"; btn.style.background = ""; }, 1200); }
+  if (btn) { btn.style.background = "#52b788"; setTimeout(() => btn.style.background = "", 1200); }
 }
 
 function cambiarVista(id) {
@@ -1359,13 +1397,7 @@ function init() {
     });
     navigationStack.push("inicio");
 
-    // Poblar select de registro rápido
-    const rrCat = document.getElementById("rr-categoria");
-    if (rrCat && rrCat.options.length === 1) {
-      CATEGORIAS_EGRESO.forEach(c => {
-        const o = document.createElement("option"); o.value = c; o.textContent = c; rrCat.appendChild(o);
-      });
-    }
+    // Poblar select de registro rápido removido (ahora es dinámico en renderPanelInicio)
 
     cargarHistorial();
     renderResumenCuentas();

@@ -579,6 +579,67 @@ select, input[type="text"], input[type="number"], textarea {
 
 .btn-backup-import { background: #e8f4f4; border-color: #0a9396; color: #0a9396; }
 
+/* ── Registro rápido: botones de categoría ── */
+.rr-cats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.btn-rr-cat {
+  padding: 7px 4px;
+  font-size: 0.78rem;
+  background: #f4f4f4;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #333;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 0.15s;
+}
+.btn-rr-cat.selected { background: #0a9396; color: white; border-color: #0a9396; }
+
+/* ── Mini ahorros en pantalla inicio ── */
+.mini-ahorros-card {
+  background: white;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.mini-ahorros-titulo {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  display: block;
+  margin-bottom: 8px;
+}
+.mini-ahorro-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid #f4f4f4;
+  font-size: 0.8rem;
+}
+.mini-ahorro-row:last-child { border-bottom: none; }
+.mini-ahorro-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mini-ahorro-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mini-ahorro-mes { color: #666; }
+.mini-ahorro-pct { font-size: 0.72rem; }
+.mini-ahorro-neto { font-weight: 600; }
+
 /* Animaciones */
 @keyframes fadeIn {
   from {opacity: 0;}
