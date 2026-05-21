@@ -91,6 +91,21 @@ function renderPanelInicio() {
   const diaHoy = parseInt(hoy.slice(8, 10));
   const diasEnMes = new Date(anio, mes, 0).getDate();
 
+  // ── Top 3 categorías para registro rápido ──
+  const freq = {};
+  movimientos.filter(m => m.tipo === "egreso").forEach(m => {
+    if (m.categoria) freq[m.categoria] = (freq[m.categoria] || 0) + 1;
+  });
+  const top3 = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 3).map(e => e[0]);
+  const defCats = ["Comida", "Transporte", "Piqueos"];
+  while (top3.length < 3) { const nx = defCats.find(d => !top3.includes(d)); if (nx) top3.push(nx); else break; }
+  const rrCatsEl = document.getElementById("rr-cats");
+  if (rrCatsEl) {
+    rrCatsEl.innerHTML = top3.map(cat =>
+      `<button class="btn-rr-cat${rrCatActual === cat ? ' selected' : ''}" onclick="selRRCat('${cat}', this)">${cat}</button>`
+    ).join("");
+  }
+
   // Egresos de hoy
   const egresosHoy = movimientos
     .filter(m => m.tipo === "egreso" && m.fecha?.slice(0, 10) === hoy)
