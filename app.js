@@ -56,8 +56,16 @@ const cuentasIniciales = [
   "BBVA - Cuenta de ahorro",
   "Efectivo",
   "Interbank - Cuenta de ahorro",
-  "Interbank - Tarjeta de crédito VISA",
   "Banco de la Nación - Cuenta de ahorro",
+  "BCP - Tarjeta de crédito",
+  "Interbank - Tarjeta de crédito VISA",
+  "Tarjeta OH",
+  "AMEX Gold"
+];
+
+const CUENTAS_CREDITO = [
+  "BCP - Tarjeta de crédito",
+  "Interbank - Tarjeta de crédito VISA",
   "Tarjeta OH",
   "AMEX Gold"
 ];
@@ -234,6 +242,40 @@ function renderPanelInicio() {
     });
     aHtml += '</div>';
     panel.innerHTML += aHtml;
+  }
+
+  // ── Deuda de tarjetas de crédito ──
+  const cuentasVinc = { "Yape (conectado a 0092)": "BCP - Cuenta de ahorro 0092" };
+  const saldosTC = new Map(CUENTAS_CREDITO.map(c => [c, 0]));
+  movimientos.forEach(m => {
+    let monto = m.moneda === "USD" ? m.monto * 3.8 : m.monto;
+    const dest = cuentasVinc[m.destino] || m.destino;
+    const orig = cuentasVinc[m.origen] || m.origen;
+    if (m.tipo === "egreso" && saldosTC.has(orig)) {
+      saldosTC.set(orig, saldosTC.get(orig) - monto);
+    }
+    if (m.tipo === "intercambio") {
+      if (saldosTC.has(orig)) saldosTC.set(orig, saldosTC.get(orig) - monto);
+      if (saldosTC.has(dest)) saldosTC.set(dest, saldosTC.get(dest) + monto);
+    }
+  });
+  const deudaTotal = [...saldosTC.values()].reduce((s, v) => s + (v < 0 ? -v : 0), 0);
+  if (deudaTotal > 0) {
+    const filasTC = CUENTAS_CREDITO
+      .filter(c => (saldosTC.get(c) || 0) < 0)
+      .map(c => {
+        const deuda = -(saldosTC.get(c));
+        return `<div class="mini-ahorro-row"><span class="mini-ahorro-mes">${c}</span><span style="color:#ee6c4d;font-weight:bold">S/ ${deuda.toFixed(2)}</span></div>`;
+      }).join("");
+    panel.innerHTML += `
+    <div class="mini-ahorros-card" style="border-left:3px solid #ee6c4d">
+      <span class="mini-ahorros-titulo">&#x1F4B3; Deuda en tarjetas</span>
+      ${filasTC}
+      <div class="mini-ahorro-row" style="border-top:1px solid #eee;margin-top:4px;padding-top:4px">
+        <span class="mini-ahorro-mes" style="font-weight:bold">Total deuda TC</span>
+        <span style="color:#ee6c4d;font-weight:bold">S/ ${deudaTotal.toFixed(2)}</span>
+      </div>
+    </div>`;
   }
 }
 
@@ -884,8 +926,8 @@ function abrirConfiguracion() {
 // ── Presupuesto por categoría ───────────────────────────────────
 const CATEGORIAS_EGRESO = [
   "Transporte","Comida","Piqueos","Ropa","Suplementos","Medicina",
-  "Estética","Gimnasio","Tarjeta BCP","Tarjeta Interbank","Tarjeta Oh","Telefonía",
-  "Membresías","Conciertos","Libros","Formación","Otros"
+  "Estética","Gimnasio","Telefonía",
+  "Membresías","Conciertos","Libros","Formación","Intereses TC","Otros"
 ];
 
 function renderGastosFijos() {
@@ -1092,7 +1134,8 @@ function renderResumenCuentas() {
     let total = 0;
     const saldosArray = [];
 
-    cuentas.forEach(nombre => {
+    // Cuentas débito/ahorro
+    cuentas.filter(nombre => !CUENTAS_CREDITO.includes(nombre)).forEach(nombre => {
       // Ocultar cuentas vinculadas (su saldo ya está en la cuenta principal)
       if (cuentasVinculadas[nombre]) return;
       const saldo = saldos.get(nombre);
@@ -1117,6 +1160,35 @@ function renderResumenCuentas() {
       `;
       tbody.appendChild(tr);
     });
+
+    // Sección tarjetas de crédito
+    const tcEnCuentas = cuentas.filter(nombre => CUENTAS_CREDITO.includes(nombre));
+    if (tcEnCuentas.length > 0) {
+      const trHeader = document.createElement("tr");
+      trHeader.innerHTML = `<td colspan="4" style="background:#fff3f3;color:#c0392b;font-weight:bold;padding:6px 8px;font-size:0.85rem">&#x1F4B3; Tarjetas de cr&eacute;dito (deuda)</td>`;
+      tbody.appendChild(trHeader);
+      let deudaTC = 0;
+      tcEnCuentas.forEach(nombre => {
+        const saldo = saldos.get(nombre) || 0;
+        const deuda = saldo < 0 ? -saldo : 0;
+        deudaTC += deuda;
+        const color = deuda > 0 ? "crimson" : "#52b788";
+        const deudaTxt = deuda > 0 ? `-S/ ${deuda.toFixed(2)}` : "S/ 0.00";
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="min-width: 180px">${nombre}</td>
+          <td style="min-width: 100px; color: ${color}; font-weight: bold">${deudaTxt}</td>
+          <td style="min-width: 150px">—</td>
+          <td style="display: flex; gap: 0.5em; align-items: center">
+            <button title="Eliminar cuenta" onclick="eliminarCuenta('${nombre}')">&#x1F5D1;&#xFE0F;</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      const trTotal = document.createElement("tr");
+      trTotal.innerHTML = `<td colspan="2" style="text-align:right;color:crimson;font-weight:bold;padding:4px 8px">Deuda total TC: S/ ${deudaTC.toFixed(2)}</td><td colspan="2"></td>`;
+      tbody.appendChild(trTotal);
+    }
 
     const totalDiv = document.getElementById("total-cuentas");
     if (totalDiv) {
