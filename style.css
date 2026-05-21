@@ -930,19 +930,20 @@ select, input[type="text"], input[type="number"], textarea {
   border: 1px solid #ccc;
   border-radius: 5px;
   background: #fff;
-  height: 32px;
+  color: #333;
   box-sizing: border-box;
 }
 .filtros-historial button {
-  font-size: 0.85rem;
-  padding: 0;
-  width: 30px;
-  height: 32px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  padding: 5px 8px;
   flex-shrink: 0;
   border-radius: 5px;
   border: 1px solid #ccc;
   background: #fff;
+  color: #333;
   cursor: pointer;
+  width: auto;
   line-height: 1;
 }
 
