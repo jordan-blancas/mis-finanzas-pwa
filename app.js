@@ -296,6 +296,13 @@ function cambiarSubvista(id) {
     subvista.classList.add("activa");
 
     if (id === "historial") {
+      const periodoEl = document.getElementById("filtro-periodo");
+      const fechaEl = document.getElementById("filtro-fecha-base");
+      if (!fechaEl.value) {
+        periodoEl.value = "dia";
+        fechaEl.type = "date";
+        fechaEl.value = new Date().toISOString().slice(0, 10);
+      }
       cargarHistorial();
     } else if (id === "graficos") {
       renderizarGraficos();
@@ -313,29 +320,132 @@ function cambiarSubvista(id) {
 }
 
 // Historial
-function cargarHistorial() {
-  const fechaBase = document.getElementById("filtro-fecha-base").value;
-  const tipoFiltro = document.getElementById("filtro-tipo").value;
-  const periodo = document.getElementById("filtro-periodo").value;
-  const movimientos = JSON.parse(localStorage.getItem("movimientos") || "[]");
-
-  const filtrados = movimientos.map((m, i) => ({ ...m, index: i })).filter(mov => {
-    if (tipoFiltro && mov.tipo !== tipoFiltro) return false;
+// Historial — helpers
+function filtrarMovsPeriodo(movimientos, periodo, fechaBase, tipoFiltro) {
+  return movimientos.map((m, i) => ({ ...m, index: i })).filter(m => {
+    if (tipoFiltro && m.tipo !== tipoFiltro) return false;
     if (!fechaBase) return true;
-
-    const fechaMov = new Date(mov.fecha);
-    const fechaFiltro = new Date(fechaBase);
-    if (periodo === "dia") return fechaMov.toDateString() === fechaFiltro.toDateString();
-    if (periodo === "mes") return mov.fecha.slice(0, 7) === fechaBase;
-    if (periodo === "anio") return mov.fecha.slice(0, 4) === fechaBase.slice(0, 4);
+    if (periodo === "dia") return m.fecha.slice(0, 10) === fechaBase.slice(0, 10);
+    if (periodo === "mes") return m.fecha.slice(0, 7) === fechaBase.slice(0, 7);
+    if (periodo === "anio") return m.fecha.slice(0, 4) === fechaBase.slice(0, 4);
     if (periodo === "trimestre") {
-      const mes = parseInt(mov.fecha.slice(5, 7));
-      const q = Math.floor((mes - 1) / 3);
-      const qFiltro = Math.floor((parseInt(fechaBase.slice(5, 7)) - 1) / 3);
-      return mov.fecha.slice(0, 4) === fechaBase.slice(0, 4) && q === qFiltro;
+      const mesM = parseInt(m.fecha.slice(5, 7));
+      const mesF = parseInt(fechaBase.slice(5, 7));
+      return m.fecha.slice(0, 4) === fechaBase.slice(0, 4) &&
+             Math.floor((mesM - 1) / 3) === Math.floor((mesF - 1) / 3);
     }
     return true;
   });
+}
+
+function calcularTotales(movimientos) {
+  let ingresos = 0, egresos = 0;
+  movimientos.forEach(m => {
+    const monto = m.moneda === "USD" ? m.monto * 3.8 : m.monto;
+    if (m.tipo === "ingreso") ingresos += monto;
+    if (m.tipo === "egreso") egresos += monto;
+  });
+  return { ingresos, egresos, saldo: ingresos - egresos };
+}
+
+function renderResumenPeriodo(totales) {
+  const colorSaldo = totales.saldo >= 0 ? "#0a9396" : "crimson";
+  const iconSaldo = totales.saldo >= 0 ? "🟢" : "🔴";
+  document.getElementById("resumen-periodo").innerHTML = `
+    <div class="cards-resumen">
+      <div class="card-stat" style="border-top:3px solid #0a9396">
+        <div class="card-stat-label">Ingresos</div>
+        <div class="card-stat-monto" style="color:#0a9396">S/ ${totales.ingresos.toFixed(2)}</div>
+      </div>
+      <div class="card-stat" style="border-top:3px solid crimson">
+        <div class="card-stat-label">Egresos</div>
+        <div class="card-stat-monto" style="color:crimson">S/ ${totales.egresos.toFixed(2)}</div>
+      </div>
+      <div class="card-stat" style="border-top:3px solid ${colorSaldo}">
+        <div class="card-stat-label">Saldo ${iconSaldo}</div>
+        <div class="card-stat-monto" style="color:${colorSaldo}">S/ ${totales.saldo.toFixed(2)}</div>
+      </div>
+    </div>`;
+}
+
+function renderComparativas(hoy, ayer, semana) {
+  const pctDelta = (a, b) => b === 0 ? null : Math.round((a - b) / b * 100);
+  const deltaText = d => d === null ? "Sin datos" : d > 0 ? `▲ ${d}%` : d < 0 ? `▼ ${Math.abs(d)}%` : "Sin cambio";
+  const deltaColor = d => d === null ? "#aaa" : d > 0 ? "crimson" : "#0a9396";
+
+  const tarjeta = (titulo, pHoy, pRef, labelRef, egresosRef, delta) => {
+    const dColor = deltaColor(delta);
+    return `
+      <div class="card-comp">
+        <div class="card-comp-title">${titulo}</div>
+        <div class="mini-bar-chart">
+          <div class="barra-item">
+            <div class="barra-wrap"><div class="barra-fill azul" style="height:${pHoy}%"></div></div>
+            <span>Hoy</span>
+          </div>
+          <div class="barra-item">
+            <div class="barra-wrap"><div class="barra-fill gris" style="height:${pRef}%"></div></div>
+            <span>${labelRef}</span>
+          </div>
+        </div>
+        <div class="card-comp-delta" style="color:${dColor}">${deltaText(delta)}</div>
+        <div class="card-comp-sub">Hoy: S/ ${hoy.egresos.toFixed(2)}</div>
+        <div class="card-comp-sub">${labelRef}: S/ ${egresosRef.toFixed(2)}</div>
+      </div>`;
+  };
+
+  const maxAyer = Math.max(hoy.egresos, ayer.egresos, 0.01);
+  const maxSem  = Math.max(hoy.egresos, semana.egresos, 0.01);
+
+  document.getElementById("comparativa-periodo").innerHTML = `
+    <div class="cards-comparativa">
+      ${tarjeta("vs Ayer",
+        Math.round(hoy.egresos / maxAyer * 100),
+        Math.round(ayer.egresos / maxAyer * 100),
+        "Ayer", ayer.egresos, pctDelta(hoy.egresos, ayer.egresos))}
+      ${tarjeta("vs Hace 7 días",
+        Math.round(hoy.egresos / maxSem * 100),
+        Math.round(semana.egresos / maxSem * 100),
+        "-7d", semana.egresos, pctDelta(hoy.egresos, semana.egresos))}
+    </div>`;
+}
+
+function actualizarInputFecha() {
+  const periodo = document.getElementById("filtro-periodo").value;
+  const input = document.getElementById("filtro-fecha-base");
+  const hoy = new Date().toISOString();
+  if (periodo === "dia") {
+    input.type = "date";
+    if (!input.value || input.value.length === 7) input.value = hoy.slice(0, 10);
+  } else {
+    input.type = "month";
+    if (!input.value || input.value.length === 10) input.value = hoy.slice(0, 7);
+  }
+}
+
+function cargarHistorial() {
+  const periodo = document.getElementById("filtro-periodo").value;
+  const tipoFiltro = document.getElementById("filtro-tipo").value;
+  const fechaBase = document.getElementById("filtro-fecha-base").value;
+  const todosMovimientos = JSON.parse(localStorage.getItem("movimientos") || "[]");
+
+  const filtrados = filtrarMovsPeriodo(todosMovimientos, periodo, fechaBase, tipoFiltro);
+  renderResumenPeriodo(calcularTotales(filtrados));
+
+  if (periodo === "dia" && fechaBase) {
+    const ref = (dias) => {
+      const d = new Date(fechaBase + "T12:00:00");
+      d.setDate(d.getDate() - dias);
+      return d.toISOString().slice(0, 10);
+    };
+    renderComparativas(
+      calcularTotales(filtrarMovsPeriodo(todosMovimientos, "dia", fechaBase, "")),
+      calcularTotales(filtrarMovsPeriodo(todosMovimientos, "dia", ref(1), "")),
+      calcularTotales(filtrarMovsPeriodo(todosMovimientos, "dia", ref(7), ""))
+    );
+  } else {
+    document.getElementById("comparativa-periodo").innerHTML = "";
+  }
 
   const ul = document.getElementById("lista-historial");
   ul.innerHTML = "";

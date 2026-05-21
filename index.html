@@ -122,28 +122,34 @@
       </div>
 
       <div id="subvista-historial" class="subvista activa">
-        <label>Ver por:</label>
-        <select id="filtro-periodo">
-          <option value="dia">Día</option>
-          <option value="mes" selected>Mes</option>
-          <option value="trimestre">Trimestre</option>
-          <option value="anio">Año</option>
-        </select>
-      
-        <label>Fecha base:</label>
-        <input type="month" id="filtro-fecha-base" />
-      
-        <label>Tipo:</label>
-        <select id="filtro-tipo">
-          <option value="">Todos</option>
-          <option value="ingreso">Ingreso</option>
-          <option value="egreso">Egreso</option>
-          <option value="intercambio">Intercambio</option>
-        </select>
-      
-        <button onclick="mostrarHistorial()">🔍 Filtrar</button>
-        <button onclick="volver()">⬅ Regresar</button>
-        <button onclick="cambiarVista('inicio')">➕ Registrar nuevo</button>
+        <div id="resumen-periodo"></div>
+        <div id="comparativa-periodo"></div>
+
+        <div class="filtros-historial">
+          <label>Ver por:</label>
+          <select id="filtro-periodo" onchange="actualizarInputFecha()">
+            <option value="dia" selected>Día</option>
+            <option value="mes">Mes</option>
+            <option value="trimestre">Trimestre</option>
+            <option value="anio">Año</option>
+          </select>
+
+          <label>Fecha:</label>
+          <input type="date" id="filtro-fecha-base" />
+
+          <label>Tipo:</label>
+          <select id="filtro-tipo">
+            <option value="">Todos</option>
+            <option value="ingreso">Ingreso</option>
+            <option value="egreso">Egreso</option>
+            <option value="intercambio">Intercambio</option>
+          </select>
+
+          <button onclick="cargarHistorial()">🔍 Filtrar</button>
+          <button onclick="volver()">⬅ Regresar</button>
+          <button onclick="cambiarVista('inicio')">➕ Registrar nuevo</button>
+        </div>
+
         <ul id="lista-historial"></ul>
       </div>
       

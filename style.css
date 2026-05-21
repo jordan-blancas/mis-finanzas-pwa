@@ -275,3 +275,113 @@ select, input[type="text"], input[type="number"], textarea {
   display: flex;
   justify-content: space-between;
 }
+
+/* ── Historial: tarjetas resumen ── */
+.cards-resumen {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.card-stat {
+  background: white;
+  border-radius: 8px;
+  padding: 10px 6px;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.card-stat-label {
+  font-size: 0.72rem;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.card-stat-monto {
+  font-size: 0.95rem;
+  font-weight: bold;
+}
+
+/* ── Historial: tarjetas comparativas ── */
+.cards-comparativa {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.card-comp {
+  background: white;
+  border-radius: 8px;
+  padding: 10px 8px;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.card-comp-title {
+  font-size: 0.78rem;
+  font-weight: bold;
+  color: #444;
+  margin-bottom: 4px;
+}
+
+.card-comp-delta {
+  font-size: 0.95rem;
+  font-weight: bold;
+  margin: 4px 0 2px;
+}
+
+.card-comp-sub {
+  font-size: 0.68rem;
+  color: #888;
+}
+
+/* ── Mini gráfico de barras ── */
+.mini-bar-chart {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  height: 44px;
+  align-items: flex-end;
+  margin: 6px auto;
+  width: 52px;
+}
+
+.barra-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+}
+
+.barra-wrap {
+  width: 100%;
+  height: 34px;
+  display: flex;
+  align-items: flex-end;
+}
+
+.barra-fill {
+  width: 100%;
+  border-radius: 3px 3px 0 0;
+  min-height: 3px;
+  transition: height 0.3s ease;
+}
+
+.barra-fill.azul { background: #008cba; }
+.barra-fill.gris { background: #bbb; }
+
+.barra-item span {
+  font-size: 0.58rem;
+  color: #999;
+}
+
+/* ── Filtros historial ── */
+.filtros-historial {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
