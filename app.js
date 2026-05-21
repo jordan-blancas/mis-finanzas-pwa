@@ -1022,9 +1022,10 @@ function cargarHistorial() {
   const fechaBase = document.getElementById("filtro-fecha-base").value;
   const todosMovimientos = JSON.parse(localStorage.getItem("movimientos") || "[]");
 
-  const filtrados = filtrarMovsPeriodo(todosMovimientos, periodo, fechaBase, tipoFiltro);
-  renderResumenPeriodo(calcularTotales(filtrados));
-  renderAnalisisAdicional(filtrados, periodo, fechaBase);
+  // Tarjetas de resumen: solo filtro de período (ignoran el tipo seleccionado)
+  const filtradosPeriodo = filtrarMovsPeriodo(todosMovimientos, periodo, fechaBase, "");
+  renderResumenPeriodo(calcularTotales(filtradosPeriodo));
+  renderAnalisisAdicional(filtradosPeriodo, periodo, fechaBase);
 
   if (periodo === "dia" && fechaBase) {
     const egresosDia = filtrarMovsPeriodo(todosMovimientos, "dia", fechaBase, "egreso");
@@ -1049,14 +1050,16 @@ function cargarHistorial() {
     document.getElementById("comparativa-periodo").innerHTML = "";
   }
 
+  // Lista de movimientos: filtro de período + tipo
+  const filtradosTipo = filtrarMovsPeriodo(todosMovimientos, periodo, fechaBase, tipoFiltro);
   const ul = document.getElementById("lista-historial");
   ul.innerHTML = "";
-  if (filtrados.length === 0) {
+  if (filtradosTipo.length === 0) {
     ul.innerHTML = "<li>Sin movimientos en ese período.</li>";
     return;
   }
 
-  filtrados.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(mov => {
+  filtradosTipo.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(mov => {
     const li = document.createElement("li");
     li.className = "mov-card";
 
