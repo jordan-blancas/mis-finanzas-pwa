@@ -279,7 +279,18 @@
       </div>
 
       <div class="config-section">
-        <h3>💰 Presupuesto mensual por categoría</h3>
+        <h3>� Gastos fijos mensuales</h3>
+        <p class="presup-desc">Recurrentes que pagas cada mes (telefonía, membresías, etc.). Se suman a la proyección.</p>
+        <div id="lista-gastos-fijos"></div>
+        <div class="gf-form">
+          <input type="text" id="gf-desc" placeholder="Descripción (ej: Claro)" maxlength="40">
+          <input type="number" id="gf-monto" placeholder="S/ monto" min="0" step="0.01">
+          <button onclick="agregarGastoFijo()">+</button>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <h3>�💰 Presupuesto mensual por categoría</h3>
         <p class="presup-desc">Define cuánto quieres gastar por categoría. Se compara con tus gastos reales del mes actual.</p>
         <div id="lista-presupuestos"></div>
       </div>

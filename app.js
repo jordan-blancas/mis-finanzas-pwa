@@ -132,11 +132,15 @@ function renderPanelInicio() {
   const promDiario = diaHoy > 0 ? egresosMes / diaHoy : 0;
   const proyeccion = promDiario * diasEnMes;
 
+  const gastosFijos = JSON.parse(localStorage.getItem("gastosFijos") || "[]");
+  const totalFijos = gastosFijos.reduce((s, g) => s + (parseFloat(g.monto) || 0), 0);
+  const proyeccionTotal = proyeccion + totalFijos;
+
   const presupuestos = JSON.parse(localStorage.getItem("presupuestos") || "{}");
   const totalPresup = Object.values(presupuestos).reduce((s, v) => s + (parseFloat(v) || 0), 0);
   let pctProy = 0, proyColor = "#52b788";
   if (totalPresup > 0) {
-    pctProy = Math.min(100, Math.round(proyeccion / totalPresup * 100));
+    pctProy = Math.min(100, Math.round(proyeccionTotal / totalPresup * 100));
     proyColor = pctProy >= 100 ? "#ee6c4d" : pctProy >= 80 ? "#f4a261" : "#52b788";
   }
 
@@ -158,12 +162,13 @@ function renderPanelInicio() {
     <div class="proyeccion-card">
       <div class="proy-header">
         <span class="proy-titulo">📅 Proyección de ${mesNombre}</span>
-        <span class="proy-monto" style="color:${totalPresup > 0 ? proyColor : "#333"}">S/ ${proyeccion.toFixed(0)}</span>
+        <span class="proy-monto" style="color:${totalPresup > 0 ? proyColor : "#333"}">S/ ${proyeccionTotal.toFixed(0)}</span>
       </div>
       <p class="proy-detalle">
         Llevas <strong>S/ ${egresosMes.toFixed(0)}</strong> en ${diaHoy} día${diaHoy !== 1 ? "s" : ""}
         &nbsp;·&nbsp; Prom. S/ ${promDiario.toFixed(1)}/día
       </p>
+      ${totalFijos > 0 ? `<p class="proy-fijos-texto">📌 Fijos del mes: S/ ${totalFijos.toFixed(0)} &nbsp;·&nbsp; Variables: S/ ${proyeccion.toFixed(0)}</p>` : ""}
       ${totalPresup > 0 ? `
         <div class="proy-barra-bg">
           <div class="proy-barra-fill" style="width:${pctProy}%;background:${proyColor}"></div>
@@ -380,6 +385,7 @@ function cambiarVista(id) {
   if (id === "configuracion") {
     document.getElementById("input-limite-diario").value = localStorage.getItem("limiteDiario") || "";
     document.getElementById("input-meta-ahorro").value = localStorage.getItem("metaAhorro") || "";
+    renderGastosFijos();
     renderPresupuesto();
   }
   if (id === "inicio") {
@@ -882,8 +888,47 @@ const CATEGORIAS_EGRESO = [
   "Membresías","Conciertos","Libros","Formación","Otros"
 ];
 
+function renderGastosFijos() {
+  const el = document.getElementById("lista-gastos-fijos");
+  if (!el) return;
+  const lista = JSON.parse(localStorage.getItem("gastosFijos") || "[]");
+  if (lista.length === 0) {
+    el.innerHTML = '<p class="gf-vacio">Ninguno configurado aún</p>';
+    return;
+  }
+  const total = lista.reduce((s, g) => s + (parseFloat(g.monto) || 0), 0);
+  el.innerHTML = lista.map((g, i) =>
+    `<div class="gf-item">
+      <span class="gf-desc">${g.desc}</span>
+      <span class="gf-monto">S/ ${parseFloat(g.monto).toFixed(0)}</span>
+      <button class="gf-del" onclick="eliminarGastoFijo(${i})">&#x2715;</button>
+    </div>`
+  ).join("") +
+  `<div class="gf-total"><span>Total fijos</span><span>S/ ${total.toFixed(0)}</span></div>`;
+}
+
+function agregarGastoFijo() {
+  const desc = document.getElementById("gf-desc").value.trim();
+  const monto = parseFloat(document.getElementById("gf-monto").value);
+  if (!desc || !monto || monto <= 0) return;
+  const lista = JSON.parse(localStorage.getItem("gastosFijos") || "[]");
+  lista.push({ desc, monto });
+  localStorage.setItem("gastosFijos", JSON.stringify(lista));
+  document.getElementById("gf-desc").value = "";
+  document.getElementById("gf-monto").value = "";
+  renderGastosFijos();
+  renderPanelInicio();
+}
+
+function eliminarGastoFijo(i) {
+  const lista = JSON.parse(localStorage.getItem("gastosFijos") || "[]");
+  lista.splice(i, 1);
+  localStorage.setItem("gastosFijos", JSON.stringify(lista));
+  renderGastosFijos();
+  renderPanelInicio();
+}
+
 function renderPresupuesto() {
-  const el = document.getElementById("lista-presupuestos");
   if (!el) return;
   const presupuestos = JSON.parse(localStorage.getItem("presupuestos") || "{}");
   const movimientos = JSON.parse(localStorage.getItem("movimientos") || "[]");

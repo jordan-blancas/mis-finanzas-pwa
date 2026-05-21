@@ -581,6 +581,68 @@ select, input[type="text"], input[type="number"], textarea {
 
 .btn-backup-import { background: #e8f4f4; border-color: #0a9396; color: #0a9396; }
 
+/* ── Gastos fijos mensuales (configuración) ── */
+.gf-form {
+  display: grid;
+  grid-template-columns: 1fr 90px 34px;
+  gap: 6px;
+  margin-top: 10px;
+}
+.gf-form input {
+  height: 32px;
+  padding: 0 8px;
+  font-size: 0.85rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+.gf-form button {
+  height: 32px;
+  background: #0a9396;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+.gf-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid #f4f4f4;
+  font-size: 0.85rem;
+}
+.gf-desc { flex: 1; color: #333; }
+.gf-monto { font-weight: 600; color: #0a9396; flex-shrink: 0; }
+.gf-del {
+  background: none;
+  border: none;
+  color: #bbb;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 2px 4px;
+  flex-shrink: 0;
+}
+.gf-del:hover { color: #ee6c4d; }
+.gf-total {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0 2px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #555;
+  border-top: 1px solid #e8e8e8;
+  margin-top: 2px;
+}
+.gf-vacio { font-size: 0.82rem; color: #aaa; margin: 6px 0 0; }
+.proy-fijos-texto {
+  font-size: 0.78rem;
+  color: #777;
+  margin: 3px 0 4px;
+}
+
 /* ── Registro rápido: botones de categoría ── */
 .rr-cats {
   display: grid;
