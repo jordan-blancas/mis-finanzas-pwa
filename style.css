@@ -908,6 +908,25 @@ select, input[type="text"], input[type="number"], textarea {
   color: #999;
 }
 
+/* ── Navegación historial ── */
+.nav-historial {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.nav-historial button {
+  flex: 1;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #333;
+  cursor: pointer;
+  width: auto;
+  font-weight: normal;
+}
+
 /* ── Filtros historial ── */
 .filtros-historial {
   display: flex;

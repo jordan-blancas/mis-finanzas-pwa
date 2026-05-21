@@ -151,6 +151,11 @@
         <div id="comparativa-periodo"></div>
         <div id="analisis-adicional"></div>
 
+        <div class="nav-historial">
+          <button onclick="volver()">&#x2190; Volver</button>
+          <button onclick="cambiarVista('inicio')">&#x2795; Nuevo</button>
+        </div>
+
         <div class="filtros-historial">
           <select id="filtro-periodo" onchange="actualizarInputFecha(); cargarHistorial()">
             <option value="dia" selected>Día</option>
