@@ -14,14 +14,13 @@
     <!-- Vista principal -->
     <section id="vista-inicio" class="vista activa">
       <h1>💰 Mis Finanzas</h1>
-      <div id="panel-inicio" class="panel-inicio oculto"></div>
 
       <!-- Registro rápido -->
       <div class="registro-rapido-card">
-        <div class="rr-header" onclick="toggleRegistroRapido()">
+        <div class="rr-header">
           <span>⚡ Registro rápido</span>
         </div>
-        <div id="rr-body" class="oculto">
+        <div id="rr-body">
           <div id="rr-cats" class="rr-cats"></div>
           <div class="rr-fila">
             <select id="rr-moneda"><option value="PEN">S/</option><option value="USD">$</option></select>
@@ -37,6 +36,8 @@
           </div>
         </div>
       </div>
+
+      <div id="panel-inicio" class="panel-inicio oculto"></div>
       <button onclick="cambiarVista('egreso')">Registrar Egreso</button>
       <button onclick="cambiarVista('intercambio')">Registrar Intercambio</button>
       <button onclick="cambiarVista('ingreso')">Registrar Ingreso</button>

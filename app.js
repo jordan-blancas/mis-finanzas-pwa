@@ -325,10 +325,7 @@ function importarBackup(event) {
 
 // ── Registro rápido ──
 function toggleRegistroRapido() {
-  const body = document.getElementById("rr-body");
-  const icon = document.getElementById("rr-toggle-icon");
-  const hidden = body.classList.toggle("oculto");
-  icon.textContent = hidden ? "▼" : "▲";
+  // registro rápido siempre visible, sin toggle
 }
 
 function selRRCuenta(cuenta, btn) {
