@@ -1,5 +1,22 @@
 console.log("app.js cargado correctamente");
 
+function hoyPeru() {
+  const d = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Lima" }));
+  return d.getFullYear() + "-" +
+    String(d.getMonth() + 1).padStart(2, "0") + "-" +
+    String(d.getDate()).padStart(2, "0");
+}
+
+function fechaPeruISO() {
+  const d = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Lima" }));
+  return d.getFullYear() + "-" +
+    String(d.getMonth() + 1).padStart(2, "0") + "-" +
+    String(d.getDate()).padStart(2, "0") + "T" +
+    String(d.getHours()).padStart(2, "0") + ":" +
+    String(d.getMinutes()).padStart(2, "0") + ":" +
+    String(d.getSeconds()).padStart(2, "0");
+}
+
 const cuentasIniciales = [
   "Yape (conectado a 0092)",
   "BCP - Cuenta de ahorro 0092",
@@ -211,7 +228,7 @@ function confirmarGuardar() {
     destino: destino || "",
     monto: montoTemp,
     moneda: monedaTemp,
-    fecha: new Date().toISOString()
+    fecha: fechaPeruISO()
   };
 
   console.log("Guardando movimiento:", registro);
@@ -301,7 +318,7 @@ function cambiarSubvista(id) {
       if (!fechaEl.value) {
         periodoEl.value = "dia";
         fechaEl.type = "date";
-        fechaEl.value = new Date().toISOString().slice(0, 10);
+        fechaEl.value = hoyPeru();
       }
       cargarHistorial();
     } else if (id === "graficos") {
@@ -413,10 +430,10 @@ function renderComparativas(hoy, ayer, semana) {
 function actualizarInputFecha() {
   const periodo = document.getElementById("filtro-periodo").value;
   const input = document.getElementById("filtro-fecha-base");
-  const hoy = new Date().toISOString();
+  const hoy = hoyPeru();
   if (periodo === "dia") {
     input.type = "date";
-    if (!input.value || input.value.length === 7) input.value = hoy.slice(0, 10);
+    if (!input.value || input.value.length === 7) input.value = hoy;
   } else {
     input.type = "month";
     if (!input.value || input.value.length === 10) input.value = hoy.slice(0, 7);
@@ -689,7 +706,7 @@ function guardarEdicionMovimiento() {
     monto,
     moneda,
     detalle,
-    fecha: new Date(fecha).toISOString()
+    fecha: fecha + "T12:00:00"
   };
 
   localStorage.setItem("movimientos", JSON.stringify(datos));
