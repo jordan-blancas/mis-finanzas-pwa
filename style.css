@@ -923,19 +923,27 @@ select, input[type="text"], input[type="number"], textarea {
 .filtros-historial select,
 .filtros-historial input[type="date"],
 .filtros-historial input[type="month"] {
-  font-size: 0.75rem;
-  padding: 4px 3px;
+  font-size: 0.8rem;
+  padding: 5px 4px;
   flex: 1;
   min-width: 0;
   border: 1px solid #ccc;
   border-radius: 5px;
   background: #fff;
+  height: 32px;
+  box-sizing: border-box;
 }
 .filtros-historial button {
-  font-size: 1rem;
-  padding: 4px 7px;
+  font-size: 0.85rem;
+  padding: 0;
+  width: 30px;
+  height: 32px;
   flex-shrink: 0;
   border-radius: 5px;
+  border: 1px solid #ccc;
+  background: #fff;
+  cursor: pointer;
+  line-height: 1;
 }
 
 /* ── Alerta límite diario ── */
