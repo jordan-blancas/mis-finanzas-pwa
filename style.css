@@ -282,6 +282,123 @@ select, input[type="text"], input[type="number"], textarea {
   margin-top: 2px;
 }
 
+/* ── Panel inicio: semáforo + proyección ── */
+.panel-inicio {
+  margin-bottom: 12px;
+}
+
+.semaforo-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: white;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.semaforo-dot {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 12px rgba(0,0,0,0.18);
+}
+
+.semaforo-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.semaforo-titulo {
+  font-size: 0.68rem;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.semaforo-monto {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  line-height: 1.2;
+}
+
+.semaforo-estado {
+  font-size: 0.76rem;
+  color: #666;
+}
+
+.semaforo-barra-bg {
+  height: 4px;
+  background: #f0f0f0;
+  border-radius: 2px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.semaforo-barra-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+.proyeccion-card {
+  background: white;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.proy-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+
+.proy-titulo {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.proy-monto {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.proy-detalle {
+  font-size: 0.76rem;
+  color: #888;
+  margin: 0 0 8px;
+}
+
+.proy-barra-bg {
+  height: 6px;
+  background: #f0f0f0;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 5px;
+}
+
+.proy-barra-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.proy-presup-texto {
+  font-size: 0.72rem;
+  color: #aaa;
+  margin: 0;
+}
+
 /* Animaciones */
 @keyframes fadeIn {
   from {opacity: 0;}
