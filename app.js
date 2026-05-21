@@ -68,6 +68,27 @@ const CUENTAS_CREDITO = [
   "AMEX Gold"
 ];
 
+function getTCMetadata() {
+  return JSON.parse(localStorage.getItem("tcMetadata") || "{}");
+}
+function guardarTCMetadata(meta) {
+  localStorage.setItem("tcMetadata", JSON.stringify(meta));
+}
+function diasHastaVencimiento(dia) {
+  const hoy = hoyPeru();
+  const anio = parseInt(hoy.slice(0, 4));
+  const mes = parseInt(hoy.slice(5, 7));
+  const diaHoy = parseInt(hoy.slice(8, 10));
+  let targetMes = mes, targetAnio = anio;
+  if (dia <= diaHoy) {
+    targetMes++;
+    if (targetMes > 12) { targetMes = 1; targetAnio++; }
+  }
+  const target = new Date(targetAnio, targetMes - 1, dia);
+  const hoyDate = new Date(anio, mes - 1, diaHoy);
+  return Math.round((target - hoyDate) / 86400000);
+}
+
 let tipoActual = "";
 let movimientoTipo = ""; // Nueva variable para el tipo de movimiento
 let categoriaActual = "";
@@ -78,6 +99,7 @@ let montoTemp = 0;
 let monedaTemp = "PEN";
 let cuentaSeleccionadaActual = "";
 let cuentaComisionSeleccionada = "";
+let tcVencimientoSeleccionada = null;
 let chartBarras, chartCategorias, chartTendencia;
 let rrCuentaActual = "";
 let rrCatActual = "";
@@ -274,6 +296,38 @@ function renderPanelInicio() {
         <span style="color:#ee6c4d;font-weight:bold">S/ ${deudaTotal.toFixed(2)}</span>
       </div>
     </div>`;
+  }
+
+  // ── Alertas de vencimiento TC ──
+  const tcMetaVenc = getTCMetadata();
+  const alertasVenc = CUENTAS_CREDITO
+    .filter(c => tcMetaVenc[c]?.diaVencimiento && (saldosTC.get(c) || 0) < 0)
+    .map(c => ({
+      nombre: c,
+      dias: diasHastaVencimiento(tcMetaVenc[c].diaVencimiento),
+      deuda: -(saldosTC.get(c)),
+      diaVenc: tcMetaVenc[c].diaVencimiento
+    }))
+    .filter(a => a.dias <= 7)
+    .sort((a, b) => a.dias - b.dias);
+
+  if (alertasVenc.length > 0) {
+    let alertHtml = '<div class="mini-ahorros-card" style="border-left:3px solid #e76f51">';
+    alertHtml += '<span class="mini-ahorros-titulo">🔔 Vencimientos próximos</span>';
+    alertasVenc.forEach(a => {
+      const color = a.dias <= 3 ? "#ee6c4d" : "#f4a261";
+      const diasTxt = a.dias === 0 ? "¡Hoy vence!" : a.dias === 1 ? "Vence mañana" : `Vence en ${a.dias} días (día ${a.diaVenc})`;
+      alertHtml += `
+        <div class="mini-ahorro-row">
+          <div>
+            <span class="mini-ahorro-mes">${a.nombre}</span>
+            <span style="font-size:0.7rem;color:${color};display:block">${diasTxt}</span>
+          </div>
+          <span style="color:#ee6c4d;font-weight:bold">S/ ${a.deuda.toFixed(2)}</span>
+        </div>`;
+    });
+    alertHtml += '</div>';
+    panel.innerHTML += alertHtml;
   }
 }
 
@@ -1190,18 +1244,26 @@ function renderResumenCuentas() {
       trHeader.innerHTML = `<td colspan="4" style="background:#fff3f3;color:#c0392b;font-weight:bold;padding:6px 8px;font-size:0.85rem">&#x1F4B3; Tarjetas de cr&eacute;dito (deuda)</td>`;
       tbody.appendChild(trHeader);
       let deudaTC = 0;
+      const tcMeta = getTCMetadata();
       tcEnCuentas.forEach(nombre => {
         const saldo = saldos.get(nombre) || 0;
         const deuda = saldo < 0 ? -saldo : 0;
         deudaTC += deuda;
         const color = deuda > 0 ? "crimson" : "#52b788";
         const deudaTxt = deuda > 0 ? `-S/ ${deuda.toFixed(2)}` : "S/ 0.00";
+        const diaVenc = tcMeta[nombre]?.diaVencimiento;
+        const diasVenc = diaVenc ? diasHastaVencimiento(diaVenc) : null;
+        const vencTxt = diaVenc
+          ? `📅 Día ${diaVenc}${diasVenc !== null && diasVenc <= 7 ? ` (${diasVenc}d)` : ""}`
+          : "—";
+        const vencColor = diaVenc && diasVenc <= 3 ? "crimson" : diaVenc && diasVenc <= 7 ? "#e76f51" : "#666";
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${nombre}</td>
           <td style="color: ${color}; font-weight: bold">${deudaTxt}</td>
-          <td>—</td>
+          <td style="color:${vencColor};font-size:0.72rem">${vencTxt}</td>
           <td><div style="display:flex;gap:4px;align-items:center">
+            <button title="Editar vencimiento" onclick="editarVencimientoTC('${nombre}')">&#x1F4C5;</button>
             <button title="Eliminar cuenta" onclick="eliminarCuenta('${nombre}')">&#x1F5D1;&#xFE0F;</button>
           </div></td>
         `;
@@ -1260,6 +1322,30 @@ function abrirPopupComision(nombre) {
   cuentaComisionSeleccionada = nombre;
   document.getElementById("cuenta-comision-nombre").textContent = nombre;
   document.getElementById("popup-comision").classList.remove("oculto");
+}
+
+function editarVencimientoTC(nombre) {
+  tcVencimientoSeleccionada = nombre;
+  const meta = getTCMetadata();
+  document.getElementById("tc-vencimiento-nombre").textContent = nombre;
+  document.getElementById("input-dia-vencimiento").value = meta[nombre]?.diaVencimiento || "";
+  document.getElementById("popup-vencimiento-tc").classList.remove("oculto");
+}
+
+function guardarVencimientoTC() {
+  const dia = parseInt(document.getElementById("input-dia-vencimiento").value);
+  if (!dia || dia < 1 || dia > 28) return alert("Ingresa un día válido entre 1 y 28");
+  const meta = getTCMetadata();
+  meta[tcVencimientoSeleccionada] = { ...meta[tcVencimientoSeleccionada], diaVencimiento: dia };
+  guardarTCMetadata(meta);
+  cerrarPopupVencimientoTC();
+  renderResumenCuentas();
+  renderPanelInicio();
+}
+
+function cerrarPopupVencimientoTC() {
+  document.getElementById("popup-vencimiento-tc").classList.add("oculto");
+  tcVencimientoSeleccionada = null;
 }
 
 function guardarComision() {
