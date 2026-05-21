@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0a9396" />
+  <link rel="icon" href="icon.png" />
+  <title>Mis Finanzas</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
+</head>
+<body>
+  <div id="app">
+    <!-- Vista principal -->
+    <section id="vista-inicio" class="vista activa">
+      <h1>💰 Mis Finanzas</h1>
+
+      <!-- Registro rápido -->
+      <div class="registro-rapido-card">
+        <div class="rr-header">
+          <span>⚡ Registro rápido</span>
+        </div>
+        <div id="rr-body">
+          <div id="rr-cats" class="rr-cats"></div>
+          <div class="rr-fila">
+            <select id="rr-moneda"><option value="PEN">S/</option><option value="USD">$</option></select>
+            <input type="number" id="rr-monto" placeholder="0.00" min="0" step="0.01">
+            <input type="text" id="rr-desc" placeholder="Descripción (opcional)" maxlength="80">
+          </div>
+          <div class="rr-cuentas">
+            <button class="btn-rr-cuenta" onclick="selRRCuenta('Yape (conectado a 0092)', this)">Yape</button>
+            <button class="btn-rr-cuenta" onclick="selRRCuenta('BCP - Cuenta de ahorro 0092', this)">BCP</button>
+            <button class="btn-rr-cuenta" onclick="selRRCuenta('BBVA - Cuenta de ahorro', this)">BBVA</button>
+            <button class="btn-rr-cuenta" onclick="selRRCuenta('Efectivo', this)">Efectivo</button>
+            <button class="btn-rr-guardar" onclick="guardarRegistroRapido()">&#x2714;</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="panel-inicio" class="panel-inicio oculto"></div>
+      <button onclick="cambiarVista('egreso')">Registrar Egreso</button>
+      <button onclick="cambiarVista('intercambio')">Registrar Intercambio</button>
+      <button onclick="cambiarVista('ingreso')">Registrar Ingreso</button>
+      <button onclick="cambiarVista('analisis')">📈 Historial y Análisis</button>
+      <button onclick="cambiarVista('configuracion')">⚙️ Configuración</button>
+    </section>
+
+    <!-- Vista egreso -->
+    <section id="vista-egreso" class="vista">
+      <h2>🧾 Tipo de egreso</h2>
+      <div class="grid">
+        <button onclick="seleccionarEgreso('Transporte')">Transporte</button>
+        <button onclick="seleccionarEgreso('Comida')">Comida</button>
+        <button onclick="seleccionarEgreso('Piqueos')">Piqueos</button>
+        <button onclick="seleccionarEgreso('Ropa')">Ropa</button>
+        <button onclick="seleccionarEgreso('Suplementos')">Suplementos</button>
+        <button onclick="seleccionarEgreso('Medicina')">Medicina</button>
+        <button onclick="seleccionarEgreso('Estética')">Estética</button>
+        <button onclick="seleccionarEgreso('Gimnasio')">Gimnasio</button>
+        <button onclick="seleccionarEgreso('Telefonía')">Telefonía</button>
+        <button onclick="seleccionarEgreso('Membresías')">Membresías</button>
+        <button onclick="seleccionarEgreso('Conciertos')">Conciertos</button>
+        <button onclick="seleccionarEgreso('Libros')">Libros</button>
+        <button onclick="seleccionarEgreso('Formación')">Formación</button>
+        <button onclick="seleccionarEgreso('Intereses TC')">Intereses TC</button>
+        <button onclick="seleccionarEgreso('Otros')">Otros</button>
+      </div>
+      <button onclick="volver()">⬅ Regresar</button>
+    </section>
+
+    <!-- Vista ingreso -->
+    <section id="vista-ingreso" class="vista">
+      <h2>📥 Fuente de ingreso</h2>
+      <div class="grid">
+        <button onclick="seleccionarIngreso('Universidad Continental')">Universidad Continental</button>
+        <button onclick="seleccionarIngreso('UNCP')">UNCP</button>
+        <button onclick="seleccionarIngreso('Vatio S.A.C.')">Vatio S.A.C.</button>
+        <button onclick="seleccionarIngreso('Élite Cultural')">Élite Cultural</button>
+        <button onclick="seleccionarIngreso('Virtual Flow Technologies')">Virtual Flow Technologies</button>
+        <button onclick="seleccionarIngreso('Fitbase Club')">Fitbase Club</button>
+      </div>
+      <input type="text" id="nuevo-ingreso" placeholder="Otra fuente (opcional)" />
+      <button onclick="usarIngresoManual()">Usar este ingreso</button>
+      <button onclick="marcarComoTípico()">💾 Marcar como típico</button>
+      <button onclick="volver()">⬅ Regresar</button>
+    </section>
+
+    <!-- Vista intercambio -->
+    <section id="vista-intercambio" class="vista">
+      <h2>🔁 Intercambio de fondos</h2>
+      <label>Desde:</label>
+      <select id="cuenta-desde"></select>
+      <label>Hacia:</label>
+      <select id="cuenta-hacia"></select>
+      <button onclick="pasarAPaginaMonto('intercambio')">Continuar</button>
+      <button onclick="volver()">⬅ Regresar</button>
+    </section>
+
+    <!-- Vista selección cuenta (para ingreso y egreso) -->
+    <section id="vista-cuenta" class="vista">
+      <h2 id="cuenta-titulo">Seleccionar cuenta</h2>
+      <div class="grid-4col">
+        <button class="btn-cuenta-rapida" onclick="seleccionarCuentaRapida('Yape (conectado a 0092)', this)">Yape</button>
+        <button class="btn-cuenta-rapida" onclick="seleccionarCuentaRapida('BCP - Cuenta de ahorro 0092', this)">BCP</button>
+        <button class="btn-cuenta-rapida" onclick="seleccionarCuentaRapida('BBVA - Cuenta de ahorro', this)">BBVA</button>
+        <button class="btn-cuenta-rapida" onclick="seleccionarCuentaRapida('Efectivo', this)">Efectivo</button>
+      </div>
+      <select id="cuenta-seleccionada" onchange="cuentaSeleccionadaActual=''; document.querySelectorAll('.btn-cuenta-rapida').forEach(b=>b.classList.remove('selected'))">
+        <option value="">— Otras cuentas —</option>
+      </select>
+      <div class="fila-monto">
+        <select id="moneda-cuenta">
+          <option value="PEN">S/</option>
+          <option value="USD">$</option>
+        </select>
+        <input type="number" id="monto-cuenta" placeholder="0.00" />
+      </div>
+      <textarea id="detalle-movimiento" placeholder="Detalle opcional..."></textarea>
+      <button onclick="guardarMovimiento()">Ingresar</button>
+      <button onclick="volver()">⬅ Regresar</button>
+      <button onclick="cambiarVista('inicio')">🏠 Volver al inicio</button>
+    </section>
+
+    <!-- Página de monto -->
+    <section id="vista-monto" class="vista">
+      <h2>💵 Monto</h2>
+      <div class="fila-monto">
+        <select id="moneda">
+          <option value="PEN">S/</option>
+          <option value="USD">$</option>
+        </select>
+        <input type="number" id="monto" placeholder="0.00" />
+        <button onclick="guardarMovimiento()">Ingresar</button>
+      </div>
+      <button onclick="volver()">⬅ Regresar</button>
+    </section>
+       
+    <!-- Vista análisis financiero (historial, gráficos, IA, resumen) -->
+    <section id="vista-analisis" class="vista">
+      <h2>📈 Análisis Financiero</h2>
+
+      <div class="tabs">
+        <button onclick="cambiarSubvista('historial')">📋 Historial</button>
+        <button onclick="cambiarSubvista('graficos')">📊 Gráficos</button>
+        <button onclick="cambiarSubvista('ia')">🤖 IA</button>
+        <button onclick="cambiarSubvista('resumen')">🏦 Resumen</button>
+      </div>
+
+      <div id="subvista-historial" class="subvista activa">
+        <div id="resumen-periodo"></div>
+        <div id="comparativa-periodo"></div>
+        <div id="analisis-adicional"></div>
+
+        <div class="nav-historial">
+          <button onclick="volver()">&#x2190; Volver</button>
+          <button onclick="cambiarVista('inicio')">&#x2795; Nuevo</button>
+        </div>
+
+        <div class="filtros-historial">
+          <select id="filtro-periodo" onchange="actualizarInputFecha(); cargarHistorial()">
+            <option value="dia" selected>Día</option>
+            <option value="mes">Mes</option>
+            <option value="trimestre">Trimestre</option>
+            <option value="anio">Año</option>
+          </select>
+          <input type="date" id="filtro-fecha-base" onchange="cargarHistorial()" oninput="cargarHistorial()" />
+          <select id="filtro-tipo" onchange="cargarHistorial()">
+            <option value="">Todos</option>
+            <option value="ingreso">Ingreso</option>
+            <option value="egreso">Egreso</option>
+            <option value="intercambio">Intercambio</option>
+          </select>
+        </div>
+
+        <div id="alerta-limite" class="alerta-limite oculto"></div>
+        <ul id="lista-historial"></ul>
+      </div>
+      
+
+      <!-- Subvista Gráficos -->
+      <div id="subvista-graficos" class="subvista">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <span class="chart-title">📊 Ingresos vs Egresos</span>
+            <span class="chart-subtitle">Últimos 6 meses</span>
+          </div>
+          <canvas id="grafico-barras"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <span class="chart-title">🏷️ Gasto por categoría</span>
+            <span class="chart-subtitle">Mes actual</span>
+          </div>
+          <canvas id="grafico-categorias"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <span class="chart-title">📈 Balance mensual</span>
+            <span class="chart-subtitle">Ahorro neto mes a mes</span>
+          </div>
+          <canvas id="grafico-tendencia"></canvas>
+        </div>
+      </div>
+
+      <!-- Subvista Análisis con IA -->
+      <div id="subvista-ia" class="subvista">
+        <p>Haz clic en el botón para analizar tus finanzas con inteligencia artificial:</p>
+        <button onclick="analizarConIA()">🤖 Analizar con ChatGPT</button>
+        <pre id="respuesta-ia" class="ia-output"></pre>
+      </div>
+
+      <!-- Subvista Resumen de cuentas -->
+      <div id="subvista-resumen" class="subvista">
+        <h3>🏦 Resumen de Cuentas</h3>
+        <button onclick="mostrarFormularioCuenta()">➕ Agregar nueva cuenta</button>
+        
+        <table id="tabla-cuentas">
+          <thead>
+            <tr>
+              <th>Cuenta</th>
+              <th>Saldo</th>
+              <th>Comisión</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>       
+          <tbody></tbody>
+        </table>
+
+        <div id="total-cuentas">Total: S/ 0.00</div>
+      </div>
+
+      <!-- Botón volver desde vista análisis -->
+      <div class="botones">
+        <button onclick="volver()">⬅ Regresar</button>
+      </div>
+
+    </section> <!-- termina vista-analisis -->
+
+    <!-- Vista Configuración -->
+    <section id="vista-configuracion" class="vista">
+      <h2>⚙️ Configuración</h2>
+
+      <div class="config-section">
+        <h3>🔔 Límite diario de gastos</h3>
+        <p class="presup-desc">Si tus egresos del día superan este monto, verás una alerta en el historial.</p>
+        <div class="config-limite">
+          <span class="config-limite-label">S/</span>
+          <input type="number" id="input-limite-diario" min="0" step="0.01" placeholder="Sin límite">
+          <button onclick="guardarLimiteDiario()">✔ Guardar</button>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <h3>🎯 Meta de ahorro mensual</h3>
+        <p class="presup-desc">Cuánto quieres ahorrar cada mes. Vers el avance en la pantalla de inicio.</p>
+        <div class="config-limite">
+          <span class="config-limite-label">S/</span>
+          <input type="number" id="input-meta-ahorro" min="0" step="1" placeholder="Sin meta">
+          <button onclick="guardarMetaAhorro()">✔ Guardar</button>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <h3>💾 Backup</h3>
+        <p class="presup-desc">Exporta todos tus datos o restaura desde un archivo previo.</p>
+        <div class="config-backup">
+          <button class="btn-backup" onclick="exportarBackup()">⬇️ Exportar backup</button>
+          <label class="btn-backup btn-backup-import">
+            ⬆️ Restaurar backup
+            <input type="file" accept=".json" onchange="importarBackup(event)" style="display:none">
+          </label>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <h3>&#x1F4CC; Gastos fijos mensuales</h3>
+        <p class="presup-desc">Recurrentes que pagas cada mes (telefon&#237;a, membres&#237;as, etc.). Se suman a la proyecci&#243;n.</p>
+        <div id="lista-gastos-fijos"></div>
+        <div class="gf-form">
+          <input type="text" id="gf-desc" placeholder="Descripci&#243;n (ej: Claro)" maxlength="40">
+          <input type="number" id="gf-monto" placeholder="S/ monto" min="0" step="0.01">
+          <button onclick="agregarGastoFijo()">+</button>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <h3>&#x1F4B0; Presupuesto mensual por categor&#237;a</h3>
+        <p class="presup-desc">Define cu&#225;nto quieres gastar por categor&#237;a. Se compara con tus gastos reales del mes actual.</p>
+        <div id="lista-presupuestos"></div>
+      </div>
+
+      <button onclick="volver()">⬅ Regresar</button>
+    </section>
+
+  <!-- Popup: Confirmación -->
+  <div id="popup-confirmacion" class="popup oculto">
+    <div class="popup-contenido">
+      <p>¿Confirmas este movimiento?</p>
+      <button onclick="confirmarGuardar()">✅ Confirmar</button>
+      <button onclick="cancelarGuardar()">❌ Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Popup: Formulario para nueva cuenta -->
+  <div id="popup-nueva-cuenta" class="popup oculto">
+    <div class="popup-contenido">
+      <h3>Nueva Cuenta</h3>
+      <input id="nueva-cuenta-nombre" placeholder="Nombre de la cuenta" />
+      <button onclick="agregarCuenta()">💾 Agregar</button>
+      <button onclick="cerrarPopupCuenta()">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Popup: Formulario para agregar comisión -->
+  <div id="popup-vencimiento-tc" class="popup oculto">
+    <div class="popup-contenido">
+      <h3>📅 Vencimiento de <span id="tc-vencimiento-nombre"></span></h3>
+      <label>Día del mes en que vence el pago (1–28):</label>
+      <input id="input-dia-vencimiento" type="number" min="1" max="28" placeholder="Ej: 15" />
+      <button onclick="guardarVencimientoTC()">&#x1F4BE; Guardar</button>
+      <button onclick="cerrarPopupVencimientoTC()">Cancelar</button>
+    </div>
+  </div>
+
+  <div id="popup-comision" class="popup oculto">
+    <div class="popup-contenido">
+      <h3>Agregar Comisión a <span id="cuenta-comision-nombre"></span></h3>
+      <input id="monto-comision" type="number" placeholder="Monto de comisión" />
+      <select id="frecuencia-comision">
+        <option value="mensual">Mensual</option>
+        <option value="semanal">Semanal</option>
+        <option value="anual">Anual</option>
+      </select>
+      <button onclick="guardarComision()">💾 Guardar</button>
+      <button onclick="cerrarPopupComision()">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Popup: Editar Movimiento -->
+  <div id="popup-editar-movimiento" class="popup oculto">
+    <div class="popup-contenido">
+      <h3>Editar Movimiento</h3>
+      <div class="campos-edicion">
+        <label><span>Tipo:</span> <select id="editar-tipo"><option>ingreso</option><option>egreso</option><option>intercambio</option></select></label>
+        <label><span>Cuenta:</span> <select id="editar-cuenta"></select></label>
+        <label><span>Monto:</span> <input type="number" id="editar-monto" /></label>
+        <label><span>Moneda:</span> <select id="editar-moneda"><option>PEN</option><option>USD</option></select></label>
+        <label><span>Detalle:</span> <input type="text" id="editar-detalle" /></label>
+        <label><span>Fecha:</span> <input type="date" id="editar-fecha" /></label>
+      </div>
+      <div class="popup-acciones">
+        <button onclick="guardarEdicionMovimiento()">Guardar</button>
+        <button onclick="confirmarEliminarMovimiento()">Eliminar</button>
+        <button onclick="cerrarPopupEditar()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  
+
+
+  <!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<!-- Script principal -->
+<script src="app.js" defer></script>
+</body>
+</html>
