@@ -91,6 +91,10 @@ function cambiarVista(id) {
   if (id === "analisis") {
     cambiarSubvista("historial");
   }
+  if (id === "configuracion") {
+    document.getElementById("input-limite-diario").value = localStorage.getItem("limiteDiario") || "";
+    renderPresupuesto();
+  }
 }
 
 function volver() {
@@ -357,8 +361,6 @@ function cambiarSubvista(id) {
       renderizarGraficos();
     } else if (id === "resumen") {
       renderResumenCuentas();
-    } else if (id === "presupuesto") {
-      renderPresupuesto();
     } else if (id === "ia") {
       const respuestaIA = document.getElementById("respuesta-ia");
       if (respuestaIA) {
@@ -570,16 +572,15 @@ function verificarLimiteDiario(egresos) {
   }
 }
 
-function abrirConfiguracion() {
-  document.getElementById("input-limite-diario").value = localStorage.getItem("limiteDiario") || "";
-  document.getElementById("popup-configuracion").classList.remove("oculto");
-}
-
-function guardarConfiguracion() {
+function guardarLimiteDiario() {
   const val = parseFloat(document.getElementById("input-limite-diario").value) || 0;
   localStorage.setItem("limiteDiario", val);
-  cerrarPopup();
-  cargarHistorial();
+  const btn = document.querySelector("#vista-configuracion .config-limite button");
+  if (btn) { btn.textContent = "✔ Guardado"; setTimeout(() => btn.textContent = "✔ Guardar", 1500); }
+}
+
+function abrirConfiguracion() {
+  cambiarVista("configuracion");
 }
 
 // ── Presupuesto por categoría ───────────────────────────────────
@@ -602,7 +603,7 @@ function renderPresupuesto() {
       gastado[m.categoria] = (gastado[m.categoria] || 0) + monto;
     });
 
-  let html = "";
+  let html = "<div class=\"presup-grid\">";
   CATEGORIAS_EGRESO.forEach(cat => {
     const pres = presupuestos[cat] || 0;
     const gas = gastado[cat] || 0;
@@ -614,17 +615,17 @@ function renderPresupuesto() {
         <div class="presup-header">
           <span class="presup-cat">${cat}</span>
           <span class="presup-gastado" style="color:${pres > 0 && gas > pres ? "crimson" : "#555"}">
-            S/ ${gas.toFixed(0)}${pres > 0 ? ` / S/ ${pres.toFixed(0)}` : ""}
+            S/ ${gas.toFixed(0)}${pres > 0 ? ` / ${pres.toFixed(0)}` : ""}
           </span>
         </div>
-        ${pres > 0 ? `<div class="presup-barra-bg"><div class="presup-barra-fill" style="width:${pct}%;background:${color}"></div></div><div class="presup-pct" style="color:${color}">${pct}% del presupuesto usado</div>` : ""}
+        ${pres > 0 ? `<div class="presup-barra-bg"><div class="presup-barra-fill" style="width:${pct}%;background:${color}"></div></div><div class="presup-pct" style="color:${color}">${pct}%</div>` : ""}
         <div class="presup-editar">
-          <label class="presup-input-label">Límite mensual S/</label>
-          <input type="number" id="${inputId}" value="${pres || ""}" placeholder="0 = sin límite" min="0" step="1">
-          <button onclick="guardarPresupuestoCat('${cat}')">Guardar</button>
+          <input type="number" id="${inputId}" value="${pres || ""}" placeholder="S/ máx" min="0" step="1">
+          <button onclick="guardarPresupuestoCat('${cat}')">✔</button>
         </div>
       </div>`;
   });
+  html += "</div>";
   el.innerHTML = html;
 }
 

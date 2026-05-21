@@ -519,11 +519,16 @@ select, input[type="text"], input[type="number"], textarea {
   margin-bottom: 10px;
 }
 
+.presup-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
 .presup-item {
   background: white;
   border-radius: 8px;
-  padding: 10px 12px;
-  margin-bottom: 8px;
+  padding: 8px 10px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 
@@ -567,34 +572,71 @@ select, input[type="text"], input[type="number"], textarea {
 
 .presup-editar {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   align-items: center;
   margin-top: 6px;
-  flex-wrap: wrap;
-}
-
-.presup-input-label {
-  font-size: 0.75rem;
-  color: #666;
-  white-space: nowrap;
 }
 
 .presup-editar input {
-  flex: 1;
-  min-width: 80px;
-  font-size: 0.85rem;
-  padding: 5px 8px;
+  width: 64px;
+  font-size: 0.8rem;
+  padding: 3px 5px;
   border: 1px solid #ddd;
   border-radius: 4px;
+  min-width: 0;
 }
 
 .presup-editar button {
-  padding: 5px 12px;
-  font-size: 0.8rem;
+  padding: 3px 8px;
+  font-size: 0.85rem;
   background: #0a9396;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   white-space: nowrap;
+}
+
+/* ── Vista Configuración ── */
+.config-section {
+  background: white;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.config-section h3 {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+}
+
+.config-limite {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.config-limite-label {
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.config-limite input {
+  width: 100px;
+  font-size: 0.9rem;
+  padding: 5px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.config-limite button {
+  padding: 5px 12px;
+  background: #0a9396;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
 }
