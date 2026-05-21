@@ -1148,10 +1148,10 @@ function renderResumenCuentas() {
       const color = saldo > 0 ? "green" : saldo < 0 ? "crimson" : "#333";
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td style="min-width: 180px">${nombre}</td>
-        <td style="min-width: 100px; color: ${color}; font-weight: bold">S/ ${saldo.toFixed(2)}</td>
-        <td style="min-width: 150px">${comTxt}</td>
-        <td style="display: flex; gap: 0.5em; align-items: center">
+        <td>${nombre}</td>
+        <td style="color: ${color}; font-weight: bold">S/ ${saldo.toFixed(2)}</td>
+        <td>${comTxt}</td>
+        <td style="display: flex; gap: 0.3em; align-items: center">
           <button title="Editar comisión" onclick="abrirPopupComision('${nombre}')">🧾</button>
           <button title="Eliminar cuenta" onclick="eliminarCuenta('${nombre}')">🗑️</button>
         </td>
@@ -1174,10 +1174,10 @@ function renderResumenCuentas() {
         const deudaTxt = deuda > 0 ? `-S/ ${deuda.toFixed(2)}` : "S/ 0.00";
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td style="min-width: 180px">${nombre}</td>
-          <td style="min-width: 100px; color: ${color}; font-weight: bold">${deudaTxt}</td>
-          <td style="min-width: 150px">—</td>
-          <td style="display: flex; gap: 0.5em; align-items: center">
+          <td>${nombre}</td>
+          <td style="color: ${color}; font-weight: bold">${deudaTxt}</td>
+          <td>—</td>
+          <td style="display: flex; gap: 0.3em; align-items: center">
             <button title="Eliminar cuenta" onclick="eliminarCuenta('${nombre}')">&#x1F5D1;&#xFE0F;</button>
           </td>
         `;

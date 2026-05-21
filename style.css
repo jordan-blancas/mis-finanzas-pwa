@@ -730,20 +730,31 @@ select, input[type="text"], input[type="number"], textarea {
   flex: 1;
 }
 
+#tabla-cuentas {
+  font-size: 0.78rem;
+  width: 100%;
+  table-layout: fixed;
+  word-break: break-word;
+}
+
 #tabla-cuentas td {
-  padding: 6px;
+  padding: 4px 5px;
   vertical-align: middle;
 }
 
 #tabla-cuentas td, #tabla-cuentas th {
-  padding: 8px 12px;
+  padding: 5px 6px;
   border-bottom: 1px solid #ccc;
   text-align: left;
 }
 
+#tabla-cuentas th {
+  font-size: 0.75rem;
+}
+
 #tabla-cuentas td button {
-  padding: 4px 6px;
-  font-size: 1rem;
+  padding: 2px 5px;
+  font-size: 0.85rem;
   cursor: pointer;
 }
 
