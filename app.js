@@ -82,6 +82,9 @@ function cambiarVista(id) {
   if (["ingreso", "egreso", "intercambio"].includes(id)) {
     movimientoTipo = id;
   }
+  if (id === "analisis") {
+    cambiarSubvista("historial");
+  }
 }
 
 function volver() {
