@@ -1551,6 +1551,7 @@ function abrirPopupEditar(mov) {
   document.getElementById("editar-moneda").value = mov.moneda || "PEN";
   document.getElementById("editar-detalle").value = mov.detalle || "";
   document.getElementById("editar-fecha").value = mov.fecha?.slice(0, 10) || "";
+  document.getElementById("editar-hora").value = mov.fecha?.slice(11, 16) || "12:00";
 
   const sel = document.getElementById("editar-cuenta");
   sel.innerHTML = "";
@@ -1572,6 +1573,7 @@ function guardarEdicionMovimiento() {
   const moneda = document.getElementById("editar-moneda").value;
   const detalle = document.getElementById("editar-detalle").value;
   const fecha = document.getElementById("editar-fecha").value;
+  const hora = document.getElementById("editar-hora").value || "12:00";
 
   if (!monto || !fecha) return alert("Monto o fecha inválidos.");
 
@@ -1584,7 +1586,7 @@ function guardarEdicionMovimiento() {
     monto,
     moneda,
     detalle,
-    fecha: fecha + "T12:00:00"
+    fecha: fecha + "T" + hora + ":00"
   };
 
   localStorage.setItem("movimientos", JSON.stringify(datos));
