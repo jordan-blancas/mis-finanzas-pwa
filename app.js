@@ -1147,7 +1147,7 @@ function cargarHistorial() {
         <span class="mov-tipo-cat">${mov.tipo.toUpperCase()} · ${mov.categoria}</span>
         <span class="mov-edit">✏️</span>
       </div>
-      <div class="mov-sub">${mov.fecha.slice(0, 10)} · ${cuentaStr}</div>
+      <div class="mov-sub">${mov.fecha.slice(0, 10)}${mov.fecha.length > 10 ? ` · ${mov.fecha.slice(11, 16)}` : ""} · ${cuentaStr}</div>
       ${mov.detalle ? `<div class="mov-detalle">📝 ${mov.detalle}</div>` : ""}
     `;
     info.querySelector(".mov-edit").onclick = () => abrirPopupEditar(mov);
