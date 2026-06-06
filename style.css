@@ -799,12 +799,13 @@ select, input[type="text"], input[type="number"], textarea {
   font-size: 0.72rem;
   border: 1px solid #ddd;
   border-radius: 6px;
-  padding: 0 4px;
+  padding: 0 2px;
   box-sizing: border-box;
   color: #555;
   background: #fff;
   width: 100%;
-  min-width: 110px;
+  min-width: 0;
+  max-width: 120px;
 }
 .btn-rr-cat {
   padding: 7px 4px;
