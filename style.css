@@ -633,19 +633,6 @@ select, input[type="text"], input[type="number"], textarea {
   color: #555;
 }
 
-.rr-fecha-input {
-  height: 34px;
-  width: 130px;
-  flex-shrink: 0;
-  font-size: 0.78rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 0 4px;
-  box-sizing: border-box;
-  color: #555;
-  background: #fff;
-}
-
 .btn-rr-guardar {
   width: 34px;
   height: 34px;
@@ -803,8 +790,21 @@ select, input[type="text"], input[type="number"], textarea {
 /* ── Registro rápido: botones de categoría ── */
 .rr-cats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, 1fr) auto;
   gap: 6px;
+  align-items: center;
+}
+.rr-fecha-input {
+  height: 34px;
+  font-size: 0.72rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  color: #555;
+  background: #fff;
+  width: 100%;
+  min-width: 110px;
 }
 .btn-rr-cat {
   padding: 7px 4px;
