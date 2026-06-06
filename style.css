@@ -86,8 +86,9 @@ select, input[type="text"], input[type="number"], textarea {
   gap: 8px;
   align-items: center;
 }
-
-.fila-monto select {
+.fila-monto select,
+.fila-monto input {
+  margin: 0;
   width: auto;
 }
 
