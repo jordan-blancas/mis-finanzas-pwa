@@ -793,7 +793,7 @@ select, input[type="text"], input[type="number"], textarea {
 /* ── Registro rápido: botones de categoría ── */
 .rr-cats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 6px;
   align-items: center;
 }
