@@ -26,6 +26,7 @@
             <select id="rr-moneda"><option value="PEN">S/</option><option value="USD">$</option></select>
             <input type="number" id="rr-monto" placeholder="0.00" min="0" step="0.01">
             <input type="text" id="rr-desc" placeholder="Descripción (opcional)" maxlength="80">
+            <input type="date" id="rr-fecha" class="rr-fecha-input" />
           </div>
           <div class="rr-cuentas">
             <button class="btn-rr-cuenta" onclick="selRRCuenta('Yape (conectado a 0092)', this)">Yape</button>
@@ -114,6 +115,7 @@
           <option value="USD">$</option>
         </select>
         <input type="number" id="monto-cuenta" placeholder="0.00" />
+        <input type="date" id="fecha-cuenta" class="fecha-mov-input" />
       </div>
       <textarea id="detalle-movimiento" placeholder="Detalle opcional..."></textarea>
       <button onclick="guardarMovimiento()">Ingresar</button>
@@ -130,6 +132,7 @@
           <option value="USD">$</option>
         </select>
         <input type="number" id="monto" placeholder="0.00" />
+        <input type="date" id="fecha-monto" class="fecha-mov-input" />
         <button onclick="guardarMovimiento()">Ingresar</button>
       </div>
       <button onclick="volver()">⬅ Regresar</button>

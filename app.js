@@ -1,5 +1,16 @@
 console.log("app.js cargado correctamente");
 
+function fechaSeleccionadaISO(inputId) {
+  const el = document.getElementById(inputId);
+  const fechaVal = el && el.value ? el.value : hoyPeru();
+  // Hora actual de Lima
+  const d = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Lima" }));
+  const hora = String(d.getHours()).padStart(2, "0") + ":" +
+    String(d.getMinutes()).padStart(2, "0") + ":" +
+    String(d.getSeconds()).padStart(2, "0");
+  return fechaVal + "T" + hora;
+}
+
 function hoyPeru() {
   const d = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Lima" }));
   return d.getFullYear() + "-" +
@@ -449,11 +460,12 @@ function guardarRegistroRapido() {
   if (!monto || monto <= 0) return alert("Ingresa un monto válido.");
 
   const movs = JSON.parse(localStorage.getItem("movimientos") || "[]");
-  movs.push({ tipo: "egreso", categoria: cat, detalle: desc, origen: rrCuentaActual, destino: "", monto, moneda, fecha: fechaPeruISO() });
+  movs.push({ tipo: "egreso", categoria: cat, detalle: desc, origen: rrCuentaActual, destino: "", monto, moneda, fecha: fechaSeleccionadaISO("rr-fecha") });
   localStorage.setItem("movimientos", JSON.stringify(movs));
 
   document.getElementById("rr-monto").value = "";
   const rrDescEl = document.getElementById("rr-desc"); if (rrDescEl) rrDescEl.value = "";
+  const rrFechaEl = document.getElementById("rr-fecha"); if (rrFechaEl) rrFechaEl.value = hoyPeru();
   rrCatActual = "";
   rrCuentaActual = "";
   document.querySelectorAll(".btn-rr-cuenta").forEach(b => b.classList.remove("selected"));
@@ -527,6 +539,9 @@ function pasarAPaginaMonto(tipo) {
   origen = document.getElementById("cuenta-desde").value;
   destino = document.getElementById("cuenta-hacia").value;
   if (origen === destino) return alert("No puedes intercambiar a la misma cuenta.");
+  // Inicializar fecha a hoy
+  const fmEl = document.getElementById("fecha-monto");
+  if (fmEl) fmEl.value = hoyPeru();
   cambiarVista("monto");
 }
 
@@ -534,6 +549,9 @@ function cargarCuentas(vista, titulo) {
   document.getElementById("cuenta-titulo").innerText = titulo;
   cuentaSeleccionadaActual = "";
   document.querySelectorAll(".btn-cuenta-rapida").forEach(b => b.classList.remove("selected"));
+  // Inicializar fecha a hoy
+  const fcEl = document.getElementById("fecha-cuenta");
+  if (fcEl) fcEl.value = hoyPeru();
   const cuentasRapidas = [
     "Yape (conectado a 0092)",
     "BCP - Cuenta de ahorro 0092",
@@ -653,7 +671,9 @@ function confirmarGuardar() {
     destino: destino || "",
     monto: montoTemp,
     moneda: monedaTemp,
-    fecha: fechaPeruISO()
+    fecha: movimientoTipo === "intercambio"
+      ? fechaSeleccionadaISO("fecha-monto")
+      : fechaSeleccionadaISO("fecha-cuenta")
   };
 
   console.log("Guardando movimiento:", registro);
@@ -1838,6 +1858,9 @@ function init() {
     renderResumenCuentas();
     renderizarGraficos();
     renderPanelInicio();
+    // Inicializar fecha del registro rápido
+    const rrFechaEl = document.getElementById("rr-fecha");
+    if (rrFechaEl) rrFechaEl.value = hoyPeru();
   } catch (error) {
     console.error("Error al inicializar la aplicación:", error);
   }

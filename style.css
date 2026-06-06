@@ -91,6 +91,18 @@ select, input[type="text"], input[type="number"], textarea {
   width: auto;
 }
 
+.fecha-mov-input {
+  height: 40px;
+  font-size: 0.82rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 0 6px;
+  box-sizing: border-box;
+  color: #333;
+  background: #fff;
+  flex-shrink: 0;
+}
+
 /* Tabs en análisis */
 .tabs {
   display: flex;
@@ -619,6 +631,19 @@ select, input[type="text"], input[type="number"], textarea {
   border-radius: 6px;
   box-sizing: border-box;
   color: #555;
+}
+
+.rr-fecha-input {
+  height: 34px;
+  width: 130px;
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  color: #555;
+  background: #fff;
 }
 
 .btn-rr-guardar {
