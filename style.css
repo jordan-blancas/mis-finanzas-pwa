@@ -808,6 +808,11 @@ select, input[type="text"], input[type="number"], textarea {
   background: #fff;
   width: 100%;
   min-width: 0;
+  max-width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  overflow: hidden;
+  text-align: center;
 }
 .btn-rr-cat {
   padding: 7px 4px;
