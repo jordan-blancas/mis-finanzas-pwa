@@ -201,6 +201,59 @@ select, input[type="text"], input[type="number"], textarea {
   max-width: 400px;
 }
 
+.popup-detalle-contenido {
+  max-width: 500px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+.detalle-cuenta-lista {
+  overflow-y: auto;
+  flex: 1;
+  margin: 10px 0;
+  border: 1px solid #eee;
+  border-radius: 8px;
+}
+.detalle-mov-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 8px 10px;
+  border-bottom: 1px solid #f0f0f0;
+  gap: 8px;
+}
+.detalle-mov-row:last-child { border-bottom: none; }
+.detalle-mov-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+.detalle-mov-fecha {
+  font-size: 0.7rem;
+  color: #999;
+}
+.detalle-mov-cat {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #333;
+}
+.detalle-mov-desc {
+  font-size: 0.72rem;
+  color: #777;
+}
+.detalle-mov-cuenta {
+  font-size: 0.68rem;
+  color: #aaa;
+}
+.detalle-mov-monto {
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 .popup.oculto {
   display: none;
 }

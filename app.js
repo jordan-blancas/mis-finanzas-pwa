@@ -1227,8 +1227,9 @@ function renderResumenCuentas() {
         <td style="color: ${color}; font-weight: bold">S/ ${saldo.toFixed(2)}</td>
         <td>${comTxt}</td>
         <td><div style="display:flex;gap:4px;align-items:center">
-          <button title="Editar comisión" onclick="abrirPopupComision('${nombre}')">🧾</button>
-          <button title="Eliminar cuenta" onclick="eliminarCuenta('${nombre}')">🗑️</button>
+          <button title="Ver detalle" onclick="abrirDetalleCuenta('${nombre.replace(/'/g, "\\'")}')">&#x1F4CB;</button>
+          <button title="Editar comisión" onclick="abrirPopupComision('${nombre.replace(/'/g, "\\'")}')">🧾</button>
+          <button title="Eliminar cuenta" onclick="eliminarCuenta('${nombre.replace(/'/g, "\\'")}')">🗑️</button>
         </div></td>
       `;
       tbody.appendChild(tr);
@@ -1260,8 +1261,9 @@ function renderResumenCuentas() {
           <td style="color: ${color}; font-weight: bold">${deudaTxt}</td>
           <td style="color:${vencColor};font-size:0.72rem">${vencTxt}</td>
           <td><div style="display:flex;gap:4px;align-items:center">
-            <button title="Editar vencimiento" onclick="editarVencimientoTC('${nombre}')">&#x1F4C5;</button>
-            <button title="Eliminar cuenta" onclick="eliminarCuenta('${nombre}')">&#x1F5D1;&#xFE0F;</button>
+            <button title="Ver detalle" onclick="abrirDetalleCuenta('${nombre.replace(/'/g, "\\'")}')">&#x1F4CB;</button>
+            <button title="Editar vencimiento" onclick="editarVencimientoTC('${nombre.replace(/'/g, "\\'")}')">&#x1F4C5;</button>
+            <button title="Eliminar cuenta" onclick="eliminarCuenta('${nombre.replace(/'/g, "\\'")}')">&#x1F5D1;&#xFE0F;</button>
           </div></td>
         `;
         tbody.appendChild(tr);
@@ -1343,6 +1345,53 @@ function guardarVencimientoTC() {
 function cerrarPopupVencimientoTC() {
   document.getElementById("popup-vencimiento-tc").classList.add("oculto");
   tcVencimientoSeleccionada = null;
+}
+
+function abrirDetalleCuenta(nombre) {
+  const movimientos = JSON.parse(localStorage.getItem("movimientos") || "[]");
+  const cuentasVinc = { "Yape (conectado a 0092)": "BCP - Cuenta de ahorro 0092" };
+  const nombreNorm = cuentasVinc[nombre] || nombre;
+
+  // Incluir también movimientos de cuentas que apuntan a esta
+  const aliasInverso = Object.entries(cuentasVinc)
+    .filter(([, v]) => v === nombreNorm)
+    .map(([k]) => k);
+  const nombres = [nombreNorm, ...aliasInverso];
+
+  const relacionados = movimientos
+    .map((m, i) => ({ ...m, index: i }))
+    .filter(m => nombres.includes(m.origen) || nombres.includes(m.destino))
+    .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+  document.getElementById("detalle-cuenta-nombre").textContent = nombre;
+
+  const lista = document.getElementById("detalle-cuenta-lista");
+  if (relacionados.length === 0) {
+    lista.innerHTML = '<p style="color:#999;text-align:center;padding:16px">Sin movimientos registrados.</p>';
+  } else {
+    lista.innerHTML = relacionados.map(m => {
+      const signo = m.tipo === "ingreso" ? "+" : m.tipo === "egreso" ? "-" : "";
+      const color = m.tipo === "ingreso" ? "#52b788" : m.tipo === "egreso" ? "#ee6c4d" : "#888";
+      const hora = m.fecha?.length > 10 ? ` · ${m.fecha.slice(11, 16)}` : "";
+      const cuentaStr = m.tipo === "intercambio" ? `${m.origen} ➝ ${m.destino}` : (m.origen || m.destino || "");
+      return `
+        <div class="detalle-mov-row">
+          <div class="detalle-mov-left">
+            <span class="detalle-mov-fecha">${m.fecha.slice(0, 10)}${hora}</span>
+            <span class="detalle-mov-cat">${m.tipo.toUpperCase()} · ${m.categoria}</span>
+            ${m.detalle ? `<span class="detalle-mov-desc">${m.detalle}</span>` : ""}
+            <span class="detalle-mov-cuenta">${cuentaStr}</span>
+          </div>
+          <span class="detalle-mov-monto" style="color:${color}">${signo}${m.moneda} ${m.monto.toFixed(2)}</span>
+        </div>`;
+    }).join("");
+  }
+
+  document.getElementById("popup-detalle-cuenta").classList.remove("oculto");
+}
+
+function cerrarPopupDetalleCuenta() {
+  document.getElementById("popup-detalle-cuenta").classList.add("oculto");
 }
 
 function guardarComision() {
