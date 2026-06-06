@@ -140,9 +140,11 @@ function renderPanelInicio() {
   while (top3.length < 3) { const nx = defCats.find(d => !top3.includes(d)); if (nx) top3.push(nx); else break; }
   const rrCatsEl = document.getElementById("rr-cats");
   if (rrCatsEl) {
+    const fechaActual = document.getElementById("rr-fecha")?.value || hoyPeru();
     rrCatsEl.innerHTML = top3.map(cat =>
       `<button class="btn-rr-cat${rrCatActual === cat ? ' selected' : ''}" onclick="selRRCat('${cat}', this)">${cat}</button>`
-    ).join("");
+    ).join("") +
+    `<input type="date" id="rr-fecha" class="rr-fecha-input" value="${fechaActual}" />`;
   }
 
   // Egresos de hoy
@@ -1858,9 +1860,6 @@ function init() {
     renderResumenCuentas();
     renderizarGraficos();
     renderPanelInicio();
-    // Inicializar fecha del registro rápido
-    const rrFechaEl = document.getElementById("rr-fecha");
-    if (rrFechaEl) rrFechaEl.value = hoyPeru();
   } catch (error) {
     console.error("Error al inicializar la aplicación:", error);
   }
