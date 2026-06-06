@@ -100,7 +100,7 @@ select, input[type="text"], input[type="number"], textarea {
 
 .fecha-mov-input {
   height: 40px;
-  font-size: 0.82rem;
+  font-size: 0.7rem;
   border: 1px solid #ccc;
   border-radius: 8px;
   padding: 0 6px;
