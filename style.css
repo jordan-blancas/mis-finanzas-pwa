@@ -568,6 +568,9 @@ select, input[type="text"], input[type="number"], textarea {
   flex-direction: column;
   gap: 6px;
   padding: 8px 12px 10px;
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
 }
 
 .rr-cuentas {
