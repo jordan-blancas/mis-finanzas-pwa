@@ -101,6 +101,9 @@ select, input[type="text"], input[type="number"], textarea {
   color: #333;
   background: #fff;
   flex-shrink: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  align-self: center;
 }
 
 /* Tabs en análisis */
