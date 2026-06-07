@@ -957,6 +957,7 @@ select, input[type="text"], input[type="number"], textarea {
 .campos-edicion label span {
   min-width: 80px;
   font-weight: bold;
+  flex-shrink: 0;
 }
 
 .popup-contenido {
