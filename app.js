@@ -1633,6 +1633,7 @@ function abrirPopupEditar(mov) {
   document.getElementById("editar-detalle").value = mov.detalle || "";
   document.getElementById("editar-fecha").value = mov.fecha?.slice(0, 10) || "";
   document.getElementById("editar-hora").value = mov.fecha?.slice(11, 16) || "12:00";
+  document.getElementById("editar-extraordinario").checked = mov.extraordinario || false;
 
   const sel = document.getElementById("editar-cuenta");
   sel.innerHTML = "";
@@ -1667,7 +1668,8 @@ function guardarEdicionMovimiento() {
     monto,
     moneda,
     detalle,
-    fecha: fecha + "T" + hora + ":00"
+    fecha: fecha + "T" + hora + ":00",
+    extraordinario: document.getElementById("editar-extraordinario").checked || false
   };
 
   localStorage.setItem("movimientos", JSON.stringify(datos));

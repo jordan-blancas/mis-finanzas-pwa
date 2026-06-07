@@ -379,7 +379,15 @@
       <div class="campos-edicion">
         <label><span>Tipo:</span> <select id="editar-tipo"><option>ingreso</option><option>egreso</option><option>intercambio</option></select></label>
         <label><span>Cuenta:</span> <select id="editar-cuenta"></select></label>
-        <label><span>Monto:</span> <input type="number" id="editar-monto" /></label>
+        <label><span>Monto:</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="number" id="editar-monto" style="flex:1;margin:0" />
+            <label class="extraordinario-check" style="margin:0;white-space:nowrap">
+              <input type="checkbox" id="editar-extraordinario" style="width:16px;height:16px" />
+              <span>⚡</span>
+            </label>
+          </div>
+        </label>
         <label><span>Moneda:</span> <select id="editar-moneda"><option>PEN</option><option>USD</option></select></label>
         <label><span>Detalle:</span> <input type="text" id="editar-detalle" /></label>
         <label><span>Fecha:</span> <input type="date" id="editar-fecha" /></label>
