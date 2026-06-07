@@ -147,14 +147,19 @@ function renderPanelInicio() {
     `<input type="date" id="rr-fecha" class="rr-fecha-input" value="${fechaActual}" />`;
   }
 
-  // Egresos de hoy
+  // Egresos de hoy (excluye extraordinarios)
   const egresosHoy = movimientos
-    .filter(m => m.tipo === "egreso" && m.fecha?.slice(0, 10) === hoy)
+    .filter(m => m.tipo === "egreso" && m.fecha?.slice(0, 10) === hoy && !m.extraordinario)
     .reduce((s, m) => s + (m.moneda === "USD" ? m.monto * 3.8 : m.monto), 0);
 
-  // Egresos del mes
+  // Egresos del mes (excluye extraordinarios para proyección)
   const egresosMes = movimientos
-    .filter(m => m.tipo === "egreso" && m.fecha?.slice(0, 7) === mesActual)
+    .filter(m => m.tipo === "egreso" && m.fecha?.slice(0, 7) === mesActual && !m.extraordinario)
+    .reduce((s, m) => s + (m.moneda === "USD" ? m.monto * 3.8 : m.monto), 0);
+
+  // Extraordinarios del mes
+  const extraordinariosMes = movimientos
+    .filter(m => m.tipo === "egreso" && m.fecha?.slice(0, 7) === mesActual && m.extraordinario)
     .reduce((s, m) => s + (m.moneda === "USD" ? m.monto * 3.8 : m.monto), 0);
 
   // Semáforo del día
@@ -210,6 +215,7 @@ function renderPanelInicio() {
         &nbsp;·&nbsp; Prom. S/ ${promDiario.toFixed(1)}/día
       </p>
       ${totalFijos > 0 ? `<p class="proy-fijos-texto">📌 Fijos del mes: S/ ${totalFijos.toFixed(0)} &nbsp;·&nbsp; Variables: S/ ${proyeccion.toFixed(0)}</p>` : ""}
+      ${extraordinariosMes > 0 ? `<p class="proy-fijos-texto" style="color:#e76f51">⚡ Gastos extraordinarios: S/ ${extraordinariosMes.toFixed(2)} (no incluídos en proyección)</p>` : ""}
       ${totalPresup > 0 ? `
         <div class="proy-barra-bg">
           <div class="proy-barra-fill" style="width:${pctProy}%;background:${proyColor}"></div>
@@ -675,7 +681,8 @@ function confirmarGuardar() {
     moneda: monedaTemp,
     fecha: movimientoTipo === "intercambio"
       ? fechaSeleccionadaISO("fecha-monto")
-      : fechaSeleccionadaISO("fecha-cuenta")
+      : fechaSeleccionadaISO("fecha-cuenta"),
+    extraordinario: document.getElementById("check-extraordinario")?.checked || false
   };
 
   console.log("Guardando movimiento:", registro);
@@ -701,6 +708,8 @@ function confirmarGuardar() {
   monedaTemp = "PEN";
 
   cerrarPopup();
+  const chk = document.getElementById("check-extraordinario");
+  if (chk) chk.checked = false;
 
   // Actualizar vistas solo si la subvista activa lo requiere
   const subvistaActiva = document.querySelector(".subvista.activa")?.id;
@@ -1121,7 +1130,8 @@ function cargarHistorial() {
   renderAnalisisAdicional(filtradosPeriodo, periodo, fechaBase);
 
   if (periodo === "dia" && fechaBase) {
-    const egresosDia = filtrarMovsPeriodo(todosMovimientos, "dia", fechaBase, "egreso");
+    const egresosDia = filtrarMovsPeriodo(todosMovimientos, "dia", fechaBase, "egreso")
+      .filter(m => !m.extraordinario);
     verificarLimiteDiario(calcularTotales(egresosDia).egresos);
   } else {
     const alertEl = document.getElementById("alerta-limite");
