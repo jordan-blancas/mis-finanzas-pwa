@@ -960,6 +960,13 @@ select, input[type="text"], input[type="number"], textarea {
   flex-shrink: 0;
 }
 
+#editar-monto {
+  width: 220px;
+  max-width: 220px;
+  flex: none;
+  margin: 0;
+}
+
 .popup-contenido {
   background: white;
   padding: 1em;
