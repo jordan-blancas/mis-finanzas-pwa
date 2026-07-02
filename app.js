@@ -1847,6 +1847,204 @@ function renderizarGraficos() {
   }
 }
 
+// ===== REGISTRO POR DÍA =====
+const CATEGORIAS_INGRESO = [
+  "Universidad Continental","UNCP","Vatio S.A.C.","Élite Cultural",
+  "Virtual Flow Technologies","Fitbase Club","Freelance","Transferencia","Otros"
+];
+let rdFechaActual = hoyPeru();
+
+function abrirRegistroPorDia() {
+  rdFechaActual = hoyPeru();
+  document.getElementById('rd-fecha').value = rdFechaActual;
+  const rdCuenta = document.getElementById('rd-cuenta');
+  rdCuenta.innerHTML = getCuentas().map(c => `<option value="${c}">${c}</option>`).join('');
+  actualizarRDCategorias();
+  renderMovimientosDia(rdFechaActual);
+  document.getElementById('popup-registro-dia').classList.remove('oculto');
+}
+
+function actualizarRDCategorias() {
+  const tipo = document.getElementById('rd-tipo').value;
+  const cats = tipo === 'egreso' ? CATEGORIAS_EGRESO : CATEGORIAS_INGRESO;
+  document.getElementById('rd-categoria').innerHTML =
+    cats.map(c => `<option value="${c}">${c}</option>`).join('');
+}
+
+function renderMovimientosDia(fecha) {
+  rdFechaActual = fecha || hoyPeru();
+  const movs = JSON.parse(localStorage.getItem('movimientos') || '[]')
+    .filter(m => m.fecha && m.fecha.startsWith(rdFechaActual));
+  const lista = document.getElementById('rd-lista');
+  if (!movs.length) {
+    lista.innerHTML = '<p style="text-align:center;color:#999;font-size:0.85rem;padding:12px">Sin movimientos este día</p>';
+    return;
+  }
+  lista.innerHTML = movs.map(m => {
+    const color = m.tipo === 'egreso' ? '#e63946' : m.tipo === 'ingreso' ? '#2a9d8f' : '#457b9d';
+    const signo = m.tipo === 'egreso' ? '−' : m.tipo === 'ingreso' ? '+' : '⇄';
+    const hora = m.fecha.split('T')[1]?.slice(0,5) || '';
+    const simbolo = m.moneda === 'USD' ? '$' : 'S/';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #eee;font-size:0.85rem">
+      <div><span style="color:#aaa;margin-right:4px">${hora}</span><strong>${m.categoria || m.tipo}</strong>${m.detalle ? ` <span style="color:#888">· ${m.detalle}</span>` : ''}</div>
+      <span style="color:${color};font-weight:bold;white-space:nowrap">${signo}${simbolo} ${parseFloat(m.monto).toFixed(2)}</span>
+    </div>`;
+  }).join('');
+}
+
+function guardarMovimientoDia() {
+  const tipo = document.getElementById('rd-tipo').value;
+  const categoria = document.getElementById('rd-categoria').value;
+  const monto = parseFloat(document.getElementById('rd-monto').value);
+  const moneda = document.getElementById('rd-moneda').value;
+  const cuenta = document.getElementById('rd-cuenta').value;
+  const detalle = document.getElementById('rd-detalle').value.trim();
+  if (!monto || monto <= 0) { alert('Ingresa un monto válido'); return; }
+  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Lima' }));
+  const hora = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') + ':' + String(d.getSeconds()).padStart(2,'0');
+  const mov = {
+    tipo, categoria, detalle, monto, moneda,
+    origen: tipo === 'egreso' ? cuenta : '',
+    destino: tipo === 'ingreso' ? cuenta : '',
+    fecha: rdFechaActual + 'T' + hora
+  };
+  const movimientos = JSON.parse(localStorage.getItem('movimientos') || '[]');
+  movimientos.unshift(mov);
+  localStorage.setItem('movimientos', JSON.stringify(movimientos));
+  document.getElementById('rd-monto').value = '';
+  document.getElementById('rd-detalle').value = '';
+  renderMovimientosDia(rdFechaActual);
+  renderPanelInicio();
+}
+
+function cerrarRegistroPorDia() {
+  document.getElementById('popup-registro-dia').classList.add('oculto');
+}
+
+// ===== IMPORTAR YAPE =====
+let yapePrevistaRows = [];
+
+function abrirImportarYape() {
+  yapePrevistaRows = [];
+  document.getElementById('yape-preview').innerHTML = '';
+  document.getElementById('btn-confirmar-yape').classList.add('oculto');
+  document.getElementById('yape-file-input').value = '';
+  document.getElementById('popup-importar-yape').classList.remove('oculto');
+}
+
+function cerrarImportarYape() {
+  document.getElementById('popup-importar-yape').classList.add('oculto');
+  yapePrevistaRows = [];
+}
+
+function parseFechaYape(fechaStr) {
+  // "DD/MM/YYYY HH:MM:SS"
+  try {
+    const [fecha, hora] = String(fechaStr).trim().split(' ');
+    const [dia, mes, anio] = fecha.split('/');
+    return `${anio}-${mes.padStart(2,'0')}-${dia.padStart(2,'0')}T${hora || '00:00:00'}`;
+  } catch(e) {
+    return hoyPeru() + 'T00:00:00';
+  }
+}
+
+function procesarArchivoYape(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+      // Fila 5 = headers (index 4), datos desde fila 6 (index 5)
+      const dataRows = rows.slice(5).filter(r => r[0] && String(r[0]).trim());
+      if (!dataRows.length) { alert('No se encontraron movimientos en el archivo'); return; }
+      yapePrevistaRows = dataRows.map(r => ({
+        tipoYape: String(r[0]).trim().toUpperCase(),
+        destino: String(r[2]).trim(),
+        monto: parseFloat(String(r[3]).replace(',', '.')) || 0,
+        mensaje: String(r[4]).trim(),
+        fechaStr: String(r[5]).trim(),
+        tipo: String(r[0]).trim().toUpperCase() === 'RECIBISTE' ? 'ingreso' : 'egreso',
+        categoria: 'Otros',
+        cuenta: 'Yape (conectado a 0092)',
+        incluir: true
+      }));
+      renderPrevistaYape();
+    } catch(err) {
+      alert('Error al leer el archivo: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function toggleYapeRow(i, checked) {
+  if (yapePrevistaRows[i]) yapePrevistaRows[i].incluir = checked;
+  const sel = yapePrevistaRows.filter(r => r.incluir).length;
+  const btn = document.getElementById('btn-confirmar-yape');
+  btn.textContent = `✅ Importar ${sel} movimiento(s)`;
+}
+
+function renderPrevistaYape() {
+  const cuentas = getCuentas();
+  const catOpts = CATEGORIAS_EGRESO.map(c => `<option value="${c}">${c}</option>`).join('');
+  const cuentaOpts = cuentas.map(c =>
+    `<option value="${c}" ${c.includes('Yape') ? 'selected' : ''}>${c}</option>`
+  ).join('');
+  const filas = yapePrevistaRows.map((row, i) => {
+    const fechaDisplay = parseFechaYape(row.fechaStr).split('T')[0];
+    const color = row.tipo === 'egreso' ? '#e63946' : '#2a9d8f';
+    return `<tr>
+      <td style="text-align:center;padding:4px"><input type="checkbox" checked onchange="toggleYapeRow(${i},this.checked)"></td>
+      <td style="font-size:0.75rem;white-space:nowrap;padding:4px">${fechaDisplay}</td>
+      <td style="font-size:0.75rem;padding:4px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${row.destino}</td>
+      <td style="font-weight:bold;color:${color};padding:4px;white-space:nowrap">S/ ${row.monto.toFixed(2)}</td>
+      <td style="padding:4px"><select style="font-size:0.75rem;padding:2px;width:100%" onchange="yapePrevistaRows[${i}].categoria=this.value">${catOpts}</select></td>
+      <td style="padding:4px"><select style="font-size:0.75rem;padding:2px;width:100%" onchange="yapePrevistaRows[${i}].cuenta=this.value">${cuentaOpts}</select></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('yape-preview').innerHTML = `
+    <p style="font-size:0.85rem;color:#555;margin:10px 0 6px">${yapePrevistaRows.length} movimiento(s) detectado(s). Asigna categoría por fila:</p>
+    <div style="overflow-x:auto;max-height:45vh;overflow-y:auto">
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:#f0f0f0;font-size:0.75rem">
+          <th style="padding:4px">✓</th><th style="padding:4px">Fecha</th>
+          <th style="padding:4px">Destinatario</th><th style="padding:4px">Monto</th>
+          <th style="padding:4px">Categoría</th><th style="padding:4px">Cuenta</th>
+        </tr></thead>
+        <tbody>${filas}</tbody>
+      </table>
+    </div>`;
+  const btn = document.getElementById('btn-confirmar-yape');
+  btn.classList.remove('oculto');
+  btn.textContent = `✅ Importar ${yapePrevistaRows.length} movimiento(s)`;
+}
+
+function confirmarImportacionYape() {
+  const seleccionados = yapePrevistaRows.filter(r => r.incluir);
+  if (!seleccionados.length) { alert('No hay movimientos seleccionados'); return; }
+  const movimientos = JSON.parse(localStorage.getItem('movimientos') || '[]');
+  seleccionados.forEach(row => {
+    movimientos.unshift({
+      tipo: row.tipo,
+      categoria: row.tipo === 'egreso' ? row.categoria : 'Transferencia recibida',
+      detalle: row.mensaje || row.destino,
+      origen: row.tipo === 'egreso' ? row.cuenta : row.destino,
+      destino: row.tipo === 'ingreso' ? row.cuenta : row.destino,
+      monto: row.monto,
+      moneda: 'PEN',
+      fecha: parseFechaYape(row.fechaStr)
+    });
+  });
+  localStorage.setItem('movimientos', JSON.stringify(movimientos));
+  cerrarImportarYape();
+  renderPanelInicio();
+  cargarHistorial();
+  alert(`✅ ${seleccionados.length} movimiento(s) importado(s) correctamente`);
+}
+
 // Inicialización
 function init() {
   try {

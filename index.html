@@ -41,6 +41,10 @@
       <button onclick="cambiarVista('egreso')">Registrar Egreso</button>
       <button onclick="cambiarVista('intercambio')">Registrar Intercambio</button>
       <button onclick="cambiarVista('ingreso')">Registrar Ingreso</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button onclick="abrirRegistroPorDia()">📅 Registro por Día</button>
+        <button onclick="abrirImportarYape()">📥 Importar Yape</button>
+      </div>
       <button onclick="cambiarVista('analisis')">📈 Historial y Análisis</button>
       <button onclick="cambiarVista('configuracion')">⚙️ Configuración</button>
     </section>
@@ -404,8 +408,52 @@
   
 
 
+  <!-- Popup: Registro por Día -->
+  <div id="popup-registro-dia" class="popup oculto">
+    <div class="popup-contenido" style="max-width:500px;width:95vw;max-height:90vh;overflow-y:auto">
+      <h3>📅 Registro por Día</h3>
+      <input type="date" id="rd-fecha" onchange="renderMovimientosDia(this.value)" style="width:100%;margin-bottom:12px" />
+      <div style="background:#f8f9fa;border-radius:8px;padding:10px;margin-bottom:12px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <select id="rd-tipo" onchange="actualizarRDCategorias()"><option value="egreso">Egreso</option><option value="ingreso">Ingreso</option></select>
+          <select id="rd-categoria"></select>
+        </div>
+        <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:8px;margin-bottom:8px;align-items:center">
+          <select id="rd-moneda"><option value="PEN">S/</option><option value="USD">$</option></select>
+          <input type="number" id="rd-monto" placeholder="0.00" min="0" step="0.01" style="margin:0" />
+          <select id="rd-cuenta" style="margin:0"></select>
+        </div>
+        <input type="text" id="rd-detalle" placeholder="Detalle (opcional)" style="width:100%;margin:0" />
+        <button onclick="guardarMovimientoDia()" style="width:100%;margin-top:8px;background:#2a9d8f">+ Agregar</button>
+      </div>
+      <div id="rd-lista" style="max-height:35vh;overflow-y:auto"></div>
+      <div class="popup-acciones" style="margin-top:8px">
+        <button onclick="cerrarRegistroPorDia()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup: Importar Yape -->
+  <div id="popup-importar-yape" class="popup oculto">
+    <div class="popup-contenido" style="max-width:560px;width:95vw;max-height:90vh;overflow-y:auto">
+      <h3>📥 Importar desde Yape</h3>
+      <p style="font-size:0.85rem;color:#555;margin:4px 0 12px">Carga el Excel exportado desde Yape (Reporte de Movimientos).</p>
+      <label style="display:block;background:#f0f4f8;border:2px dashed #0a9396;border-radius:8px;padding:16px;text-align:center;cursor:pointer;font-weight:bold;color:#0a9396">
+        📂 Seleccionar archivo .xlsx
+        <input type="file" id="yape-file-input" accept=".xlsx,.xls" onchange="procesarArchivoYape(event)" style="display:none">
+      </label>
+      <div id="yape-preview"></div>
+      <div class="popup-acciones" style="margin-top:12px">
+        <button id="btn-confirmar-yape" class="oculto" onclick="confirmarImportacionYape()">✅ Importar</button>
+        <button onclick="cerrarImportarYape()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<!-- SheetJS para importar Excel -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <!-- Script principal -->
 <script src="app.js" defer></script>
 </body>
