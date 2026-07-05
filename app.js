@@ -1982,45 +1982,109 @@ function procesarArchivoYape(event) {
 
 function toggleYapeRow(i, checked) {
   if (yapePrevistaRows[i]) yapePrevistaRows[i].incluir = checked;
+  actualizarContadorYape();
+}
+
+function actualizarContadorYape() {
   const sel = yapePrevistaRows.filter(r => r.incluir).length;
   const btn = document.getElementById('btn-confirmar-yape');
-  btn.textContent = `✅ Importar ${sel} movimiento(s)`;
+  if (btn) btn.textContent = `✅ Importar ${sel} movimiento(s)`;
+  const msg = document.getElementById('yape-count-msg');
+  if (msg) msg.textContent = `${yapePrevistaRows.length} en total · ${sel} seleccionado(s)`;
+}
+
+function aplicarFiltroYape(preset) {
+  const hoy = hoyPeru();
+  const d = new Date(hoy);
+  let desde = '', hasta = hoy;
+  if (preset === 'hoy') {
+    desde = hoy;
+  } else if (preset === '7dias') {
+    const d7 = new Date(d); d7.setDate(d7.getDate() - 6);
+    desde = stringFecha(d7);
+  } else if (preset === '15dias') {
+    const d15 = new Date(d); d15.setDate(d15.getDate() - 14);
+    desde = stringFecha(d15);
+  } else if (preset === 'mes') {
+    desde = hoy.slice(0, 7) + '-01';
+  } else {
+    desde = ''; hasta = '';
+  }
+  const elDesde = document.getElementById('yape-desde');
+  const elHasta = document.getElementById('yape-hasta');
+  if (elDesde) elDesde.value = desde;
+  if (elHasta) elHasta.value = hasta;
+  filtrarYapePorFechas();
+}
+
+function filtrarYapePorFechas() {
+  const desde = document.getElementById('yape-desde')?.value || '';
+  const hasta = document.getElementById('yape-hasta')?.value || '';
+  yapePrevistaRows.forEach((row, i) => {
+    const fechaRow = parseFechaYape(row.fechaStr).split('T')[0];
+    const tr = document.getElementById(`yape-row-${i}`);
+    if (!tr) return;
+    const visible = (!desde || fechaRow >= desde) && (!hasta || fechaRow <= hasta);
+    tr.style.display = visible ? '' : 'none';
+    row.incluir = visible;
+    const cb = tr.querySelector('input[type=checkbox]');
+    if (cb) cb.checked = visible;
+  });
+  actualizarContadorYape();
 }
 
 function renderPrevistaYape() {
-  const cuentas = getCuentas();
   const catOpts = CATEGORIAS_EGRESO.map(c => `<option value="${c}">${c}</option>`).join('');
-  const cuentaOpts = cuentas.map(c =>
-    `<option value="${c}" ${c.includes('Yape') ? 'selected' : ''}>${c}</option>`
-  ).join('');
   const filas = yapePrevistaRows.map((row, i) => {
-    const fechaDisplay = parseFechaYape(row.fechaStr).split('T')[0];
+    const fechaISO = parseFechaYape(row.fechaStr);
+    const fechaDisplay = fechaISO.replace('T', ' ').slice(0, 16); // YYYY-MM-DD HH:MM
     const color = row.tipo === 'egreso' ? '#e63946' : '#2a9d8f';
-    return `<tr>
+    return `<tr id="yape-row-${i}">
       <td style="text-align:center;padding:4px"><input type="checkbox" checked onchange="toggleYapeRow(${i},this.checked)"></td>
-      <td style="font-size:0.75rem;white-space:nowrap;padding:4px">${fechaDisplay}</td>
-      <td style="font-size:0.75rem;padding:4px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${row.destino}</td>
+      <td style="font-size:0.72rem;padding:4px;white-space:nowrap">${fechaDisplay}</td>
+      <td style="font-size:0.75rem;padding:4px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${row.destino}">${row.destino}</td>
+      <td style="font-size:0.72rem;padding:4px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#666" title="${row.mensaje}">${row.mensaje || '—'}</td>
       <td style="font-weight:bold;color:${color};padding:4px;white-space:nowrap">S/ ${row.monto.toFixed(2)}</td>
       <td style="padding:4px"><select style="font-size:0.75rem;padding:2px;width:100%" onchange="yapePrevistaRows[${i}].categoria=this.value">${catOpts}</select></td>
-      <td style="padding:4px"><select style="font-size:0.75rem;padding:2px;width:100%" onchange="yapePrevistaRows[${i}].cuenta=this.value">${cuentaOpts}</select></td>
     </tr>`;
   }).join('');
+
   document.getElementById('yape-preview').innerHTML = `
-    <p style="font-size:0.85rem;color:#555;margin:10px 0 6px">${yapePrevistaRows.length} movimiento(s) detectado(s). Asigna categoría por fila:</p>
-    <div style="overflow-x:auto;max-height:45vh;overflow-y:auto">
+    <div style="margin:10px 0;padding:10px;background:#f0f4f8;border-radius:8px">
+      <p style="font-size:0.8rem;font-weight:bold;margin:0 0 8px">🗓️ Filtrar por fecha:</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+        <button onclick="aplicarFiltroYape('hoy')" style="font-size:0.72rem;padding:4px 8px;background:#0a9396;color:white;border:none;border-radius:4px;cursor:pointer">Hoy</button>
+        <button onclick="aplicarFiltroYape('7dias')" style="font-size:0.72rem;padding:4px 8px;background:#0a9396;color:white;border:none;border-radius:4px;cursor:pointer">Últimos 7 días</button>
+        <button onclick="aplicarFiltroYape('15dias')" style="font-size:0.72rem;padding:4px 8px;background:#0a9396;color:white;border:none;border-radius:4px;cursor:pointer">Últimas 2 semanas</button>
+        <button onclick="aplicarFiltroYape('mes')" style="font-size:0.72rem;padding:4px 8px;background:#0a9396;color:white;border:none;border-radius:4px;cursor:pointer">Este mes</button>
+        <button onclick="aplicarFiltroYape('todo')" style="font-size:0.72rem;padding:4px 8px;background:#888;color:white;border:none;border-radius:4px;cursor:pointer">Todo</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;font-size:0.8rem;flex-wrap:wrap">
+        <span>Desde:</span><input type="date" id="yape-desde" onchange="filtrarYapePorFechas()" style="font-size:0.8rem;padding:3px;margin:0">
+        <span>Hasta:</span><input type="date" id="yape-hasta" onchange="filtrarYapePorFechas()" style="font-size:0.8rem;padding:3px;margin:0">
+      </div>
+    </div>
+    <p id="yape-count-msg" style="font-size:0.82rem;color:#555;margin:6px 0"></p>
+    <div style="overflow-x:auto;max-height:40vh;overflow-y:auto">
       <table style="width:100%;border-collapse:collapse">
-        <thead><tr style="background:#f0f0f0;font-size:0.75rem">
-          <th style="padding:4px">✓</th><th style="padding:4px">Fecha</th>
-          <th style="padding:4px">Destinatario</th><th style="padding:4px">Monto</th>
-          <th style="padding:4px">Categoría</th><th style="padding:4px">Cuenta</th>
+        <thead><tr style="background:#f0f0f0;font-size:0.72rem">
+          <th style="padding:4px">✓</th>
+          <th style="padding:4px">Fecha y hora</th>
+          <th style="padding:4px">Destinatario</th>
+          <th style="padding:4px">Mensaje</th>
+          <th style="padding:4px">Monto</th>
+          <th style="padding:4px">Categoría</th>
         </tr></thead>
         <tbody>${filas}</tbody>
       </table>
     </div>`;
+
   const btn = document.getElementById('btn-confirmar-yape');
   btn.classList.remove('oculto');
-  btn.textContent = `✅ Importar ${yapePrevistaRows.length} movimiento(s)`;
+  // Aplicar filtro por defecto: últimos 7 días
+  aplicarFiltroYape('7dias');
 }
+
 
 function confirmarImportacionYape() {
   const seleccionados = yapePrevistaRows.filter(r => r.incluir);
